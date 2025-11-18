@@ -1,5 +1,12 @@
 # 🎤 Orato AI (AITUCAP HACKATOON Project)
 
+<div align="center">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React Badge"/>
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite Badge"/>
+  <img src="https://img.shields.io/badge/Google%20Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini Badge"/>
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License Badge"/>
+</div>
+
 **Orato AI** — это ваш персональный умный тренер по ораторскому мастерству. Приложение слушает вашу речь, транскрибирует её в реальном времени и использует искусственный интеллект (Google Gemini) для глубокого анализа.
 
 Оно находит слова-паразиты, измеряет темп речи, оценивает ясность и дает конкретные советы по улучшению, сохраняя историю вашего прогресса.
