@@ -11,11 +11,11 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Инициализация Gemini
+// Инициализация ИИ
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-// --- Middleware аутентификации ---
+//  Middleware аутентификации 
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -28,7 +28,7 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// --- РОУТЫ ---
+//  РОУТЫ 
 
 // Регистрация
 app.post('/api/register', [
@@ -65,7 +65,7 @@ app.post('/api/login', async (req, res) => {
     });
 });
 
-// --- ГЛАВНЫЙ РОУТ: АНАЛИЗ РЕЧИ ---
+//  ГЛАВНЫЙ РОУТ: АНАЛИЗ РЕЧИ 
 app.post('/api/analyze', authenticateToken, async (req, res) => {
     const { transcript, durationSeconds } = req.body;
 
@@ -74,19 +74,18 @@ app.post('/api/analyze', authenticateToken, async (req, res) => {
     }
 
     try {
-        // 1. Считаем слова и темп математически (это точнее, чем ИИ)
         const wordCount = transcript.trim().split(/\s+/).length;
         const wpm = Math.round((wordCount / durationSeconds) * 60) || 0;
 
-        // 2. Промпт (Инструкция) для Gemini на русском
+        // Промпт
         const prompt = `
         Ты — Orato AI, профессиональный, эмпатичный и строгий тренер по ораторскому мастерству.
         Твоя задача — помочь пользователю улучшить его навыки публичных выступлений.
         
         Проанализируй следующий текст выступления на русском языке:
-        ---
+        
         "${transcript}"
-        ---
+        
         
         Контекст:
         - Длительность: ${durationSeconds} сек.
@@ -105,12 +104,11 @@ app.post('/api/analyze', authenticateToken, async (req, res) => {
         const result = await model.generateContent(prompt);
         const response = await result.response;
         
-        // Чистим ответ от возможных markdown-тегов
         let text = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
         
         const analysis = JSON.parse(text);
 
-        // Сохраняем в БД
+        // Сохранение в БД
         const sql = `INSERT INTO speeches (user_id, transcript, clarity_score, pace_wpm, filler_words, feedback, tip) VALUES (?, ?, ?, ?, ?, ?, ?)`;
         
         db.run(sql, [
@@ -127,7 +125,7 @@ app.post('/api/analyze', authenticateToken, async (req, res) => {
                 return res.status(500).json({ error: 'Ошибка сохранения в БД' });
             }
             
-            // Отправляем клиенту объединенные данные (математика + ИИ)
+            // Отправляем клиенту
             res.json({
                 ...analysis,
                 pace: wpm

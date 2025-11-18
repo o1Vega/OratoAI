@@ -18,14 +18,13 @@ const MainLayout = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Показываем лоадер только при первой загрузке или при обновлении страницы
-    // (можно добавить условие, чтобы не показывать при переходах внутри меню)
+
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2200); // Время анимации
 
     return () => clearTimeout(timer);
-  }, []); // Пустой массив = только при старте приложения
+  }, []); 
 
   return (
     <>

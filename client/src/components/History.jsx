@@ -56,7 +56,7 @@ const History = () => {
         )}
       </div>
 
-      {/* --- МОДАЛЬНОЕ ОКНО ДЕТАЛЕЙ --- */}
+      {/*  МОДАЛЬНОЕ ОКНО ДЕТАЛЕЙ  */}
       {selectedItem && (
         <div className="modal-overlay" onClick={() => setSelectedItem(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>

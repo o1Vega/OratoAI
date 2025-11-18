@@ -1,6 +1,6 @@
 import { useActionState, useState, use } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useNavigate } from 'react-router-dom'; // <-- Добавлен импорт
+import { useNavigate } from 'react-router-dom'; 
 import { loginUser, registerUser } from '../api';
 import { AuthContext } from '../AuthContext';
 
@@ -15,7 +15,7 @@ function SubmitButton({ isLogin }) {
 
 const Auth = () => {
   const { setAuth } = use(AuthContext);
-  const navigate = useNavigate(); // <-- Хук навигации
+  const navigate = useNavigate(); 
   const [isLogin, setIsLogin] = useState(true);
 
   const formAction = async (prevState, formData) => {
@@ -24,7 +24,7 @@ const Auth = () => {
       if (isLogin) {
         const res = await loginUser(data);
         setAuth(res.data.token);
-        navigate('/'); // <-- МОМЕНТАЛЬНЫЙ ПЕРЕХОД ПОСЛЕ ВХОДА
+        navigate('/'); 
         return { success: true };
       } else {
         await registerUser(data);
@@ -32,7 +32,6 @@ const Auth = () => {
         return { message: 'Аккаунт создан! Теперь войдите.' };
       }
     } catch (err) {
-      // Показываем понятную ошибку
       return { error: err.response?.data?.error || 'Ошибка сервера. Попробуйте позже.' };
     }
   };

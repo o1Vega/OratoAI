@@ -32,7 +32,7 @@ const Recorder = () => {
           }
         }
         
-        // Если есть финальный текст - сохраняем
+
         if (finalChunk) {
           transcriptRef.current += finalChunk;
           setTranscript(prev => prev + finalChunk);
@@ -52,8 +52,8 @@ const Recorder = () => {
 
   const startRecording = () => {
     setTranscript('');
-    transcriptRef.current = ''; // Сбрас
-    setAnalysis(null); // Скрываем старый результат
+    transcriptRef.current = '';
+    setAnalysis(null); 
     setTimer(0);
     setIsRecording(true);
     
@@ -72,7 +72,6 @@ const Recorder = () => {
     
     console.log("Остановка записи...");
 
-    // Даем 1 секунду, чтобы "долетели" последние слова из микрофона
     setTimeout(() => {
         handleAnalysis();
     }, 1000);
@@ -93,7 +92,7 @@ const Recorder = () => {
           console.log("Отправка на сервер...");
           const res = await analyzeSpeech(textToAnalyze, timer);
           console.log("Ответ сервера:", res.data);
-          setAnalysis(res.data); // <--- ВОТ ЗДЕСЬ ПОЯВЛЯЕТСЯ ОКНО
+          setAnalysis(res.data); 
         } catch (e) {
           console.error("Ошибка анализа:", e);
           alert('Ошибка связи с сервером. Проверьте, запущен ли бекенд.');
@@ -108,7 +107,7 @@ const Recorder = () => {
         <p style={{ color: 'var(--text-muted)' }}>Говорите свободно. Анализ запустится автоматически после остановки.</p>
       </div>
 
-      {/* --- БЛОК ЗАПИСИ --- */}
+      {/*  БЛОК ЗАПИСИ  */}
       <div className="card" style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <div className="timer-display">
           {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, '0')}
@@ -139,7 +138,7 @@ const Recorder = () => {
         </div>
       </div>
 
-      {/* --- ИНДИКАТОР ЗАГРУЗКИ (ЕСЛИ АНАЛИЗ ИДЕТ) --- */}
+      {/*  ИНДИКАТОР ЗАГРУЗКИ*/}
       {isPending && (
           <div style={{ textAlign: 'center', margin: '2rem 0', color: 'var(--primary)' }}>
               <Loader2 className="spin" size={40} style={{margin: '0 auto'}}/>
@@ -147,7 +146,7 @@ const Recorder = () => {
           </div>
       )}
 
-      {/* --- БЛОК РЕЗУЛЬТАТОВ (ПОЯВЛЯЕТСЯ СНИЗУ) --- */}
+      {/*  БЛОК РЕЗУЛЬТАТОВ  */}
       {analysis && (
         <div className="card result-section">
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>

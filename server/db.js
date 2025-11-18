@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// Создаем файл БД
+
 const dbPath = path.resolve(__dirname, 'orato.db');
 
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -14,7 +14,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // Инициализация таблиц
 db.serialize(() => {
-    // Таблица пользователей
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE,
@@ -22,7 +21,6 @@ db.serialize(() => {
         password TEXT
     )`);
 
-    // Таблица истории выступлений (JSON хранится как TEXT)
     db.run(`CREATE TABLE IF NOT EXISTS speeches (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
