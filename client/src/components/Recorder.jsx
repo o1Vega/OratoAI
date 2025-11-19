@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useTransition } from 'react';
-import { Mic, StopCircle, Loader2, CheckCircle2, Sparkles, ChevronDown } from 'lucide-react'; // Добавил иконку ChevronDown
+import { Mic, StopCircle, Loader2, CheckCircle2, Sparkles, ChevronDown } from 'lucide-react';
+import toast from 'react-hot-toast'; // <-- ИМПОРТ
 import { analyzeSpeech } from '../api';
 
 const Recorder = () => {
@@ -7,10 +8,8 @@ const Recorder = () => {
   const [transcript, setTranscript] = useState('');
   const [analysis, setAnalysis] = useState(null);
   const [timer, setTimer] = useState(0);
-  
-  // список слов-паразитов
   const [showFillers, setShowFillers] = useState(false);
-
+  
   const [isPending, startTransition] = useTransition();
   
   const transcriptRef = useRef(''); 
@@ -35,6 +34,15 @@ const Recorder = () => {
           setTranscript(prev => prev + finalChunk);
         }
       };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error("Speech Error:", event.error);
+        if (event.error === 'not-allowed') {
+            toast.error('Доступ к микрофону запрещен! Разрешите его в настройках.'); // <-- ОШИБКА
+        }
+      };
+    } else {
+        toast.error('Ваш браузер не поддерживает распознавание речи 😢');
     }
   }, []);
 
@@ -43,7 +51,7 @@ const Recorder = () => {
     transcriptRef.current = ''; 
     setAnalysis(null);
     setTimer(0);
-    setShowFillers(false); // Сбрас раскрытого списка при новой записи
+    setShowFillers(false);
     setIsRecording(true);
     
     try {
@@ -62,8 +70,9 @@ const Recorder = () => {
 
   const handleAnalysis = () => {
       const textToAnalyze = transcriptRef.current;
+
       if (!textToAnalyze || textToAnalyze.trim().length === 0) {
-          alert('Ничего не записалось.');
+          toast('Я ничего не услышал. Попробуйте громче! 🎤', { icon: '🤔' }); // <-- УВЕДОМЛЕНИЕ
           return;
       }
 
@@ -71,7 +80,11 @@ const Recorder = () => {
         try {
           const res = await analyzeSpeech(textToAnalyze, timer);
           setAnalysis(res.data);
-        } catch (e) { console.error(e); }
+          toast.success('Анализ готов! Смотрите ниже 👇'); // <-- УСПЕХ
+        } catch (e) {
+          console.error(e);
+          toast.error('Ошибка связи с сервером ИИ'); // <-- ОШИБКА
+        }
       });
   };
 
@@ -123,7 +136,6 @@ const Recorder = () => {
               <div className="metric-label">Слов / Мин</div>
             </div>
 
-            {/* КАРТОЧКА СЛОВ-ПАРАЗИТОВ  */}
             <div 
               className="metric-card interactive-card" 
               onClick={() => setShowFillers(!showFillers)}
@@ -135,22 +147,16 @@ const Recorder = () => {
               <div className="metric-label" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px'}}>
                 Слов-паразитов <ChevronDown size={14} style={{ transform: showFillers ? 'rotate(180deg)' : 'none', transition: '0.3s' }}/>
               </div>
-
-              {/* Раскрывающийся список */}
               {showFillers && (
                 <div className="fillers-list fade-in">
                   {analysis.fillerWords.length > 0 ? (
-                    analysis.fillerWords.map((word, idx) => (
-                      <span key={idx} className="filler-tag">{word}</span>
-                    ))
+                    analysis.fillerWords.map((word, idx) => <span key={idx} className="filler-tag">{word}</span>)
                   ) : (
                     <span style={{color: 'var(--success)', fontSize: '0.9rem'}}>Чистая речь! 🎉</span>
                   )}
                 </div>
               )}
             </div>
-            {/* ---------------------- */}
-
           </div>
 
           <div style={{ marginTop: '2rem', display: 'grid', gap: '1rem' }}>
@@ -160,9 +166,8 @@ const Recorder = () => {
                 </h3>
                 <p style={{ margin: '0.5rem 0 0', lineHeight: '1.6' }}>{analysis.feedback}</p>
              </div>
-
              <div style={{ background: 'rgba(6, 182, 212, 0.1)', padding: '1.5rem', borderRadius: '1rem', borderLeft: '4px solid var(--accent)' }}>
-                <h3 style={{ color: 'var(--accent)', margin: 0 }}>💡 Совет:</h3>
+                <h3 style={{ color: 'var(--accent)', margin: 0 }}>💡 Зона роста:</h3>
                 <p style={{ margin: '0.5rem 0 0', lineHeight: '1.6' }}>{analysis.tip}</p>
              </div>
           </div>

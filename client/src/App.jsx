@@ -1,5 +1,6 @@
 import { useState, useEffect, use } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast'; // <-- ИМПОРТ УВЕДОМЛЕНИЙ
 import Navbar from './components/Navbar';
 import Auth from './components/Auth';
 import Recorder from './components/Recorder';
@@ -30,6 +31,36 @@ const MainLayout = () => {
   return (
     <>
       {isLoading && <IntroLoader />}
+      
+      {/* --- НАСТРОЙКА КРАСИВЫХ УВЕДОМЛЕНИЙ (Тосты) --- */}
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          // Глобальный стиль под "Glassmorphism"
+          style: {
+            background: 'rgba(30, 41, 59, 0.95)',
+            color: '#f8fafc',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(12px)',
+            padding: '16px',
+            borderRadius: '12px',
+            fontSize: '0.95rem',
+            fontFamily: "'Outfit', sans-serif",
+            boxShadow: '0 15px 40px rgba(0,0,0,0.6)',
+            zIndex: 99999,
+          },
+          success: {
+            iconTheme: { primary: '#10b981', secondary: '#fff' },
+            style: { borderLeft: '4px solid #10b981' }
+          },
+          error: {
+            iconTheme: { primary: '#f43f5e', secondary: '#fff' },
+            style: { borderLeft: '4px solid #f43f5e' }
+          },
+        }}
+      />
+
       <div className={`app-content ${isLoading ? 'hidden-content' : 'visible-content'}`}>
         <Navbar />
         <div className="container main-container">

@@ -52,13 +52,13 @@ TELEGRAM_BOT_TOKEN=ваш_токен
 
     try {
         // 2. Установка зависимостей
-        log("📦 Установка библиотек Сервера...", colors.bright);
+        log("установка библиотек", colors.bright);
         await runCommand(npmCmd, ['install'], serverPath, 'Server Install');
 
-        log("📦 Установка библиотек Клиента...", colors.bright);
+        log("Установка библиотек.", colors.bright);
         await runCommand(npmCmd, ['install'], clientPath, 'Client Install');
 
-        log("🚀 Запуск проекта...", colors.green);
+        log("Запуск", colors.green);
 
         // 3. Параллельный запуск
         const server = spawn(npmCmd, ['start'], { cwd: serverPath, stdio: 'inherit', shell: true });

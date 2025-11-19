@@ -1,9 +1,10 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-
+// Определяем путь к файлу базы данных
 const dbPath = path.resolve(__dirname, 'orato.db');
 
+// Подключение к БД
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Ошибка подключения к БД:', err.message);
@@ -12,14 +13,14 @@ const db = new sqlite3.Database(dbPath, (err) => {
     }
 });
 
-
 // Инициализация таблиц
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
+        username TEXT,
         email TEXT UNIQUE,
-        password TEXT
+        password TEXT,
+        telegram_chat_id TEXT
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS speeches (
@@ -33,13 +34,6 @@ db.serialize(() => {
         tip TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(user_id) REFERENCES users(id)
-    )`);
-    db.run(`CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT,
-        email TEXT UNIQUE,
-        password TEXT,
-        telegram_chat_id TEXT
     )`);
 });
 

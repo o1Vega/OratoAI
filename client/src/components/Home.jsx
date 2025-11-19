@@ -25,7 +25,7 @@ const Home = () => {
         <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto 3rem', lineHeight: '1.6' }}>
           Ваш персональный ИИ-тренер по ораторскому искусству. 
           Анализирует речь, находит слова-паразиты и дает советы, 
-          как звучать убедительно.
+          как звучать более убедительно.
         </p>
 
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>

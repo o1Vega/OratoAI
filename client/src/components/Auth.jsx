@@ -3,21 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { registerInit, loginInit, verifyCode } from '../api';
 import { AuthContext } from '../AuthContext';
 import { Loader2, ShieldCheck, Send } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Auth = () => {
   const { setAuth } = use(AuthContext);
   const navigate = useNavigate();
   
   const [isLogin, setIsLogin] = useState(true);
-  const [step, setStep] = useState('INIT'); // INIT или VERIFY
+  const [step, setStep] = useState('INIT');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Данные формы
   const [formData, setFormData] = useState({ username: '', email: '', password: '', telegramId: '' });
   const [otp, setOtp] = useState('');
 
-  // Расчет силы пароля
+  // Шкала пароля
   const getPasswordStrength = (pass) => {
     let score = 0;
     if (!pass) return 0;
@@ -35,50 +35,58 @@ const Auth = () => {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // Шаг 1: Отправка данных
   const handleInitSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
     try {
       if (isLogin) {
-        // Если у юзера старый аккаунт без 2FA, сервер вернет сразу token
         const res = await loginInit({ email: formData.email, password: formData.password });
         if (res.data.token) {
             setAuth(res.data.token);
+            toast.success('С возвращением! 👋');
             navigate('/practice');
             return;
         }
       } else {
         await registerInit(formData);
       }
+      
+      toast.success('Код отправлен в Telegram ✈️');
       setStep('VERIFY');
     } catch (err) {
-      setError(err.response?.data?.error || 'Ошибка сервера');
+      const msg = err.response?.data?.error || 'Ошибка сервера';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  // Шаг 2: Проверка кода
   const handleVerifySubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
     try {
       const res = await verifyCode({ email: formData.email, code: otp });
+      
       if (isLogin) {
         setAuth(res.data.token);
+        toast.success('Вход выполнен успешно! 🚀');
         navigate('/practice');
       } else {
-        alert('Регистрация успешна! Теперь войдите.');
+        toast.success('Регистрация завершена! 🎉 Теперь войдите.');
         setIsLogin(true);
         setStep('INIT');
         setOtp('');
         setFormData({ ...formData, password: '' });
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Неверный код');
+      const msg = err.response?.data?.error || 'Неверный код';
+      setError(msg);
+      toast.error(msg + ' ❌');
     } finally {
       setLoading(false);
     }
@@ -103,12 +111,22 @@ const Auth = () => {
         )}
 
         {step === 'INIT' ? (
-          <form onSubmit={handleInitSubmit}>
+          <form onSubmit={handleInitSubmit} autoComplete="on">
             {!isLogin && (
               <>
-                <input name="username" placeholder="Имя" onChange={handleChange} required />
+                <input 
+                  name="username" 
+                  placeholder="Имя" 
+                  onChange={handleChange} 
+                  required 
+                />
                 <div style={{ marginBottom: '1.2rem' }}>
-                  <input name="telegramId" placeholder="Telegram Chat ID" onChange={handleChange} required />
+                  <input 
+                    name="telegramId" 
+                    placeholder="Telegram Chat ID" 
+                    onChange={handleChange} 
+                    required 
+                  />
                   <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block', marginTop: '-10px' }}>
                     Напишите <b>/start</b> нашему боту, чтобы узнать ID
                   </small>
@@ -116,10 +134,25 @@ const Auth = () => {
               </>
             )}
             
-            <input name="email" type="email" placeholder="Email" onChange={handleChange} required />
+            <input 
+              name="email" 
+              type="email" 
+              placeholder="Email" 
+              autoComplete="email"
+              onChange={handleChange} 
+              required 
+            />
             
             <div style={{ marginBottom: '1.5rem' }}>
-              <input name="password" type="password" placeholder="Пароль" onChange={handleChange} required />
+              <input 
+                name="password" 
+                type="password" 
+                placeholder="Пароль" 
+                autoComplete={isLogin ? "current-password" : "new-password"}
+                onChange={handleChange} 
+                required 
+              />
+              
               {!isLogin && formData.password && (
                 <div style={{ marginTop: '-0.5rem' }}>
                    <div style={{ height: '4px', background: '#334155', borderRadius: '2px', overflow: 'hidden' }}>
@@ -141,11 +174,22 @@ const Auth = () => {
             <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
               <Send color="var(--primary)" size={32} />
             </div>
+            
+
             <input 
-              value={otp} onChange={(e) => setOtp(e.target.value)} 
-              placeholder="123456" style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '5px' }}
-              maxLength={6} required
+              key="otp-input"
+              name="otp"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              value={otp} 
+              onChange={(e) => setOtp(e.target.value)} 
+              placeholder="123456" 
+              style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '5px' }}
+              maxLength={6} 
+              required
             />
+            
             <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
               {loading ? <Loader2 className="spin" /> : 'Подтвердить'}
             </button>
