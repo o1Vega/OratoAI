@@ -10,18 +10,25 @@ const LiveTrainer = () => {
   const [status, setStatus] = useState<'IDLE' | 'LISTENING' | 'THINKING' | 'SPEAKING'>('IDLE');
   const [lastPhrase, setLastPhrase] = useState("Выберите режим и нажмите микрофон.");
   
-  // НОВЫЙ СТЕЙТ РЕЖИМА
+  // Стейт для UI
   const [mode, setMode] = useState<ModeType>('mentor');
   
-  // Для хака голоса в Linux/Chrome
+  // --- ИСПРАВЛЕНИЕ: REF ДЛЯ АКТУАЛЬНОГО РЕЖИМА ---
+  // Мы дублируем режим в ref, чтобы микрофон всегда видел свежее значение
+  const modeRef = useRef<ModeType>('mentor');
+
+  // Синхронизируем Ref с состоянием при каждом клике
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    // Принудительная подгрузка голосов
-    const initVoices = () => window.speechSynthesis.getVoices();
-    initVoices();
-    window.speechSynthesis.onvoiceschanged = initVoices;
+    const loadVoices = () => window.speechSynthesis.getVoices();
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -30,18 +37,24 @@ const LiveTrainer = () => {
       recognitionRef.current.lang = 'ru-RU';
 
       recognitionRef.current.onresult = async (e: any) => {
-        handleSend(e.results[0][0].transcript);
+        const text = e.results[0][0].transcript;
+        handleSend(text);
       };
 
       recognitionRef.current.onerror = (e: any) => {
-        console.error(e);
-        setStatus('IDLE');
-        if (e.error === 'not-allowed') toast.error('Нет доступа к микрофону');
+        if (e.error !== 'no-speech') {
+           setStatus('IDLE');
+           toast.error('Не расслышал...');
+        }
       };
 
       recognitionRef.current.onend = () => {
         if (status === 'LISTENING') setStatus('IDLE');
       };
+    }
+
+    return () => {
+       window.speechSynthesis.cancel();
     }
   }, []);
 
@@ -49,7 +62,7 @@ const LiveTrainer = () => {
     window.speechSynthesis.cancel();
     setStatus('LISTENING');
     setLastPhrase("Слушаю...");
-    recognitionRef.current?.start();
+    try { recognitionRef.current?.start(); } catch {}
   };
 
   const stopSession = () => {
@@ -63,81 +76,69 @@ const LiveTrainer = () => {
     setLastPhrase(`Вы: "${text}"`);
 
     try {
-      // ПЕРЕДАЕМ ВЫБРАННЫЙ MODE
-      const res = await chatWithCompanion(text, mode);
+      // --- ИСПРАВЛЕНИЕ: БЕРЕМ РЕЖИМ ИЗ REF ---
+      // Теперь мы читаем modeRef.current, который всегда свежий
+      const currentMode = modeRef.current;
+      console.log("Sending request with mode:", currentMode); // Проверка в консоли браузера
+
+      const res = await chatWithCompanion(text, currentMode);
       const reply = res.data.reply;
       setLastPhrase(reply);
       speak(reply);
     } catch (e) {
       setStatus('IDLE');
-      toast.error('Сбой ИИ');
+      toast.error('Сбой связи с ИИ');
     }
   };
 
   const speak = (text: string) => {
     window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
     synthRef.current = utterance;
+    
+    utterance.lang = 'ru-RU';
+    utterance.volume = 1;
 
-    // Немного меняем интонацию в зависимости от режима
-    if (mode === 'interview') {
-        utterance.rate = 0.9; // Медленнее, строже
+    // Читаем актуальный режим для настроек голоса тоже из Ref
+    const currentMode = modeRef.current;
+
+    if (currentMode === 'interview') {
+        utterance.rate = 0.9; 
         utterance.pitch = 0.8; 
-    } else if (mode === 'debate') {
-        utterance.rate = 1.15; // Быстрее, агрессивнее
+    } else if (currentMode === 'debate') {
+        utterance.rate = 1.15; 
         utterance.pitch = 1.0;
     } else {
-        utterance.rate = 1.1; // Позитивный ментор
-        utterance.pitch = 1.1;
+        utterance.rate = 1.05;
+        utterance.pitch = 1.0;
     }
 
     const voices = window.speechSynthesis.getVoices();
-    // Пытаемся найти хороший русский голос (Google preferred)
-    const ruVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('ru')) || 
-                    voices.find(v => v.lang.includes('ru'));
+    const ruVoices = voices.filter(v => v.lang.includes('ru'));
     
-    if (ruVoice) utterance.voice = ruVoice;
+    let voice = ruVoices.find(v => v.name.includes('Google')); 
+    if (!voice) voice = ruVoices.find(v => v.name.includes('Milena') || v.name.includes('Yuri')); 
+    if (!voice) voice = ruVoices[0]; 
+    
+    if (voice) utterance.voice = voice;
 
     utterance.onstart = () => setStatus('SPEAKING');
     utterance.onend = () => setStatus('IDLE');
+    utterance.onerror = () => setStatus('IDLE');
+
     window.speechSynthesis.speak(utterance);
   };
 
   return (
-    <div className="fade-in" style={{ 
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-        height: '80vh', gap: '1.5rem' 
-    }}>
+    <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '75vh', gap: '2rem' }}>
       
-      {/* ВЫБОР РЕЖИМА (КРАСИВЫЕ КНОПКИ) */}
-      <div className="mode-selector" style={{ display: 'flex', gap: '10px', background: 'rgba(0,0,0,0.3)', padding: '5px', borderRadius: '12px' }}>
-          
-          <button 
-            onClick={() => setMode('mentor')}
-            className={`mode-btn ${mode === 'mentor' ? 'active' : ''}`}
-            style={getBtnStyle(mode === 'mentor', 'var(--success)')}
-          >
-             <HeartHandshake size={18}/> Ментор
-          </button>
-
-          <button 
-            onClick={() => setMode('interview')}
-            className={`mode-btn ${mode === 'interview' ? 'active' : ''}`}
-            style={getBtnStyle(mode === 'interview', 'var(--primary)')}
-          >
-             <Briefcase size={18}/> Собеседование
-          </button>
-
-          <button 
-            onClick={() => setMode('debate')}
-            className={`mode-btn ${mode === 'debate' ? 'active' : ''}`}
-            style={getBtnStyle(mode === 'debate', 'var(--danger)')}
-          >
-             <Swords size={18}/> Дебаты
-          </button>
+      <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '16px', marginBottom:'1rem' }}>
+          <ModeBtn label="Ментор" active={mode === 'mentor'} onClick={() => setMode('mentor')} color="#10b981" icon={<HeartHandshake size={16}/>} />
+          <ModeBtn label="Интервью" active={mode === 'interview'} onClick={() => setMode('interview')} color="#8b5cf6" icon={<Briefcase size={16}/>} />
+          <ModeBtn label="Дебаты" active={mode === 'debate'} onClick={() => setMode('debate')} color="#f43f5e" icon={<Swords size={16}/>} />
       </div>
 
-      {/* ВИЗУАЛ */}
       <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {status === 'IDLE' && <Activity size={64} color="var(--text-muted)" style={{opacity:0.3}} />}
         {status === 'LISTENING' && <div className="pulse-mic"><Mic size={64} color="var(--primary)" /></div>}
@@ -149,56 +150,51 @@ const LiveTrainer = () => {
         )}
       </div>
 
-      {/* ТЕКСТ */}
       <div className="card" style={{ 
-          minWidth: '300px', maxWidth: '600px', minHeight: '120px', 
+          minWidth: '300px', maxWidth: '650px', minHeight: '120px', 
           display:'flex', alignItems:'center', justifyContent:'center',
-          fontSize: '1.25rem', padding: '2rem', lineHeight: '1.5', textAlign: 'center',
-          border: status === 'SPEAKING' ? `1px solid ${getColor(mode)}` : '1px solid var(--glass-border)',
-          boxShadow: status === 'SPEAKING' ? `0 0 30px ${getColor(mode, 0.2)}` : 'none',
-          transition: 'all 0.3s ease'
+          fontSize: '1.3rem', padding: '2rem', lineHeight: '1.6', textAlign: 'center',
+          border: status === 'SPEAKING' ? `2px solid ${getColor(mode)}` : '1px solid var(--glass-border)',
+          boxShadow: status === 'SPEAKING' ? `0 0 40px ${getColor(mode, 0.25)}` : 'none',
+          transition: 'all 0.4s ease'
       }}>
           <p style={{ margin: 0 }}>{lastPhrase}</p>
       </div>
 
-      {/* УПРАВЛЕНИЕ */}
       {status === 'IDLE' ? (
-        <button onClick={startSession} className="btn btn-primary" style={{borderRadius: '50px', padding: '1rem 3rem', fontSize:'1.2rem', background: `linear-gradient(135deg, ${getColor(mode)}, #000)`}}>
-          <Mic size={24} /> Ответить
+        <button onClick={startSession} className="btn btn-primary" style={{
+            borderRadius: '50px', padding: '1rem 3.5rem', fontSize:'1.2rem', 
+            background: `linear-gradient(135deg, ${getColor(mode)}, #111)`
+        }}>
+          <Mic size={24} /> Начать
         </button>
       ) : (
-        <button onClick={stopSession} className="btn btn-danger" style={{borderRadius: '50px', padding: '1rem 3rem', fontSize:'1.2rem'}}>
+        <button onClick={stopSession} className="btn btn-danger" style={{borderRadius: '50px', padding: '1rem 3.5rem', fontSize:'1.2rem'}}>
           <Square size={20} fill="white"/> Стоп
         </button>
       )}
-      
-      <p style={{color:'var(--text-muted)', fontSize:'0.9rem'}}>
-        Текущая роль: {mode === 'interview' ? 'Строгий HR' : mode === 'debate' ? 'Оппонент' : 'Добрый наставник'}
-      </p>
     </div>
   );
 };
 
-// Helper Styles
-const getColor = (mode: string, alpha = 1) => {
-    if (mode === 'interview') return `rgba(139, 92, 246, ${alpha})`; // primary
-    if (mode === 'debate') return `rgba(244, 63, 94, ${alpha})`; // danger
-    return `rgba(16, 185, 129, ${alpha})`; // success
-}
+// UI Helpers
+const ModeBtn = ({label, active, onClick, color, icon}: any) => (
+    <button onClick={onClick} style={{
+        background: active ? color : 'transparent',
+        color: active ? 'white' : 'var(--text-muted)',
+        border: 'none', padding: '0.6rem 1rem', borderRadius: '10px',
+        cursor: 'pointer', display:'flex', gap:'6px', alignItems:'center', fontWeight:'bold', fontSize:'0.9rem',
+        transition: 'all 0.2s',
+        boxShadow: active ? `0 0 15px ${color}66` : 'none'
+    }}>
+        {icon} {label}
+    </button>
+)
 
-const getBtnStyle = (isActive: boolean, color: string) => ({
-    background: isActive ? color : 'transparent',
-    color: isActive ? '#fff' : 'var(--text-muted)',
-    border: 'none',
-    padding: '0.6rem 1.2rem',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    display: 'flex',
-    gap: '8px',
-    alignItems: 'center',
-    fontSize: '0.9rem',
-    fontWeight: 'bold' as const,
-    transition: '0.2s'
-});
+const getColor = (mode: string, alpha = 1) => {
+    if (mode === 'interview') return `rgba(139, 92, 246, ${alpha})`; 
+    if (mode === 'debate') return `rgba(244, 63, 94, ${alpha})`; 
+    return `rgba(16, 185, 129, ${alpha})`; 
+}
 
 export default LiveTrainer;

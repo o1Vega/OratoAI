@@ -376,49 +376,54 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 func handleCompanion(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Message string `json:"message"`
-		Mode    string `json:"mode"`
+		Mode    string `json:"mode"` // ВАЖНО: Поле должно совпадать с тем, что шлет TS
 	}
 	
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if json.NewDecoder(r.Body).Decode(&req) != nil {
 		httpError(w, "Invalid JSON", 400)
 		return
 	}
 
 	ctx := context.Background()
 	var rolePrompt string
+	var temp float32
 
 	switch req.Mode {
 	case "interview":
-		rolePrompt = `Роль: Строгий HR-менеджер на собеседовании.
-		Тон: Официальный, сухой, профессиональный.
-		Задача: Проверь кандидата на стрессоустойчивость. Не хвали, задавай каверзные вопросы по существу.`
-		gemini.SetTemperature(0.4) 
+		rolePrompt = `Роль: Строгий HR-менеджер.
+		Тон: Холодный, профессиональный, критичный.
+		Задача: Проводи собеседование. Задавай сложные вопросы. Указывай на слабые места кандидата.`
+		temp = 0.3 
 	case "debate":
-		rolePrompt = `Роль: Оппонент в дебатах.
-		Тон: Критический, напористый, логичный.
-		Задача: Не соглашайся с пользователем. Найди ошибку в его аргументах и контратакуй. Твоя цель — победить в споре.`
-		gemini.SetTemperature(0.8) 
+		rolePrompt = `Роль: Оппонент в жестких дебатах.
+		Тон: Напористый, логичный, провокационный.
+		Задача: Категорически не соглашайся с пользователем. Найди ошибку в его логике и разбей его аргументы. Твоя цель — победить в споре любой ценой.`
+		temp = 0.9
 	default: 
-		rolePrompt = `Роль: Добрый тренер по ораторскому мастерству.
-		Тон: Дружелюбный, мягкий, поддерживающий.
-		Задача: Поддержи диалог, похвали за хорошие мысли и мягко предложи улучшения.`
-		gemini.SetTemperature(0.7)
+		rolePrompt = `Роль: Дружелюбный наставник.
+		Тон: Теплый, мягкий, поддерживающий.
+		Задача: Поддерживай беседу, хвали пользователя, помогай ему раскрыться.`
+		temp = 0.7
 	}
 
 	prompt := fmt.Sprintf(`
 		%s
+		
 		Язык: Русский.
-		Инструкция: Ответь на реплику пользователя.
-		Ограничение: Ответ должен быть КРАТКИМ (1-3 предложения) и БЕЗ Markdown (без звездочек ** и решеток #), чтобы это легко читалось вслух.
+		Входные данные: Пользователь сказал: "%s"
+		
+		Твоя инструкция: 
+		1. Дай краткий ответ (максимум 2-3 предложения), исходя из своей роли.
+		2. Не используй markdown (*, #), эмодзи или списки. Нужен чистый текст для озвучки.
+		3. В конце задай короткий вопрос, чтобы продолжить диалог.`, rolePrompt, req.Message)
 
-		Пользователь сказал: "%s"`, rolePrompt, req.Message)
-
+	gemini.SetTemperature(temp)
 	resp, err := gemini.GenerateContent(ctx, genai.Text(prompt))
+	
 	if err == nil && len(resp.Candidates) > 0 {
 		if part, ok := resp.Candidates[0].Content.Parts[0].(genai.Text); ok {
 			txt := string(part)
 			txt = strings.ReplaceAll(txt, "*", "")
-
 			jsonResponse(w, map[string]string{"reply": txt})
 			return
 		}
