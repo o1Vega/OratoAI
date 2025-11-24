@@ -1,6 +1,5 @@
 import { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-// Добавлена иконка User для профиля
 import { Mic, LogOut, LayoutDashboard, History as HistoryIcon, AudioWaveform, User } from 'lucide-react'; 
 import { AuthContext } from '../AuthContext';
 
@@ -8,7 +7,6 @@ const Navbar = () => {
   const auth = useContext(AuthContext);
   const location = useLocation();
   
-  // Функция для подсветки активной ссылки
   const isActive = (path: string) => location.pathname === path ? 'active' : '';
 
   return (
@@ -23,30 +21,24 @@ const Navbar = () => {
       <div className="nav-links" style={{ display: 'flex', alignItems: 'center' }}>
         {auth?.token ? (
           <>
-            {/* Практика */}
             <Link to="/practice" className={isActive('/practice')} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <LayoutDashboard size={18} /> Практика
             </Link>
             
-            {/* Live Тренер */}
             <Link to="/companion" className={isActive('/companion')} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <AudioWaveform size={18} /> Live Тренер
             </Link>
 
-            {/* Профиль (Геймификация) */}
             <Link to="/profile" className={isActive('/profile')} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <User size={18} /> Профиль
             </Link>
             
-            {/* История */}
             <Link to="/history" className={isActive('/history')} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <HistoryIcon size={18} /> История
             </Link>
             
-            {/* Разделитель */}
             <div style={{ width: '1px', height: '24px', background: 'var(--glass-border)', margin: '0 1.5rem' }}></div>
             
-            {/* Выход */}
             <button 
               onClick={() => auth.setAuth(null)} 
               className="btn btn-outline" 

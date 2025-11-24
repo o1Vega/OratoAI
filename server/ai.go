@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log" // <-- ДОБАВИЛ ИМПОРТ
+	"log"
 	"math"
 	"net/http"
 	"strings"
@@ -12,12 +12,10 @@ import (
 	"github.com/google/generative-ai-go/genai"
 )
 
-// --- ОБНОВЛЕННАЯ ФУНКЦИЯ АНАЛИЗА ---
 func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 	var req AnalyzeRequest 
 	json.NewDecoder(r.Body).Decode(&req)
 	
-	// Проверка на наличие ID в контексте
 	uidVal := r.Context().Value("userID")
 	if uidVal == nil {
 		httpError(w, "Unauthorized", 401)
@@ -30,7 +28,6 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Промпт с метриками
 	prompt := fmt.Sprintf(`
 	Роль: Судья по ораторскому мастерству. Язык: Русский.
 	Текст выступления: "%s"
@@ -66,7 +63,6 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 		part := resp.Candidates[0].Content.Parts[0]
 		txt := fmt.Sprintf("%s", part)
 
-		// Очистка JSON (без regexp)
 		s, e := strings.Index(txt, "{"), strings.LastIndex(txt, "}")
 		if s != -1 && e != -1 {
 			cleanJson := txt[s : e+1]
@@ -74,11 +70,9 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 			var result map[string]interface{}
 			if json.Unmarshal([]byte(cleanJson), &result) == nil {
 				
-				// 1. Расчет темпа (WPM)
 				if req.Duration <= 0 { req.Duration = 1 }
 				wpm := int(math.Round(float64(len(strings.Fields(req.Transcript))) / req.Duration * 60))
 
-				// 2. Извлечение полей
 				clarity := 0
 				if v, ok := result["clarityScore"].(float64); ok { clarity = int(v) }
 				
@@ -88,7 +82,6 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 				fb, _ := result["feedback"].(string)
 				tp, _ := result["tip"].(string)
 
-				// 3. Сохранение в БД
 				_, err := db.Exec(`INSERT INTO speeches (user_id, transcript, clarity_score, pace_wpm, filler_words, feedback, tip, metrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 					uid, req.Transcript, clarity, wpm, string(fwBytes), fb, tp, string(metricsBytes))
 				
@@ -96,8 +89,6 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 					log.Println("[!] DB Save Error:", err)
 				}
 
-				// 4. ГЕЙМИФИКАЦИЯ
-				// Мы используем имя processGamification, которое определим в отдельном файле
 				go processGamification(uid, clarity, wpm) 
 
 				result["pace"] = wpm

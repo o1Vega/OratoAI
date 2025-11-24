@@ -25,7 +25,6 @@ var (
 
 func initDB() {
 	var err error
-	// Открываем подключение
 	db, err = sql.Open("sqlite", "./orato.db")
 	if err != nil {
 		log.Fatal("[!] DB Connection Error:", err)

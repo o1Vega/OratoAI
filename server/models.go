@@ -29,8 +29,6 @@ type RegisterData struct {
 	TelegramID string `json:"telegramId"`
 }
 
-// Структуры для парсинга JSON внутри хендлеров можно оставить тут или внутри функций,
-// но для чистоты часто выносят сюда:
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`

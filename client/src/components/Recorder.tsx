@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef, useTransition } from 'react';
-// Иконки
 import { Mic, StopCircle, Loader2, CheckCircle2, Sparkles, ChevronDown, Dices } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { analyzeSpeech, AnalysisData } from '../api';
 import { AxiosError } from 'axios';
 import { TOPICS } from '../topics'; 
-// Импортируем компонент графика (убедись, что ты создал файл RadarChartSkill.tsx)
 import RadarChartSkill from './RadarChartSkill'; 
 
 interface ISpeechRecognition extends EventTarget {
@@ -184,7 +182,6 @@ const Recorder = () => {
               <div className="score-label">Баллов</div>
             </div>
             
-            {/* --- 💎 ГРАФИК НАВЫКОВ 💎 --- */}
             {analysis.metrics && (
                 <div style={{ maxWidth: '500px', margin: '0 auto 2rem' }}>
                     <h3 style={{fontSize:'0.9rem', color:'var(--text-muted)', marginBottom:'10px', textTransform:'uppercase'}}>Карта Навыков</h3>

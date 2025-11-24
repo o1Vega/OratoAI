@@ -8,11 +8,10 @@ import History from './components/History';
 import Home from './components/Home';
 import IntroLoader from './components/IntroLoader';
 import LiveTrainer from './components/LiveTrainer';
-import Profile from './components/Profile'; // Убедись, что файл существует
+import Profile from './components/Profile';
 import { AuthProvider, AuthContext } from './AuthContext';
 import './App.css';
 
-// Типизируем пропсы для оберток маршрутов
 interface RouteProps {
   children: ReactNode;
 }
@@ -20,7 +19,6 @@ interface RouteProps {
 const ProtectedRoute = ({ children }: RouteProps) => {
   const auth = useContext(AuthContext);
   
-  // Если контекст еще не загрузился или токена нет -> редирект
   if (!auth?.token) {
     return <Navigate to="/auth" replace />;
   }
@@ -30,7 +28,6 @@ const ProtectedRoute = ({ children }: RouteProps) => {
 const GuestRoute = ({ children }: RouteProps) => {
   const auth = useContext(AuthContext);
   
-  // Если токен есть -> редирект на практику
   if (auth?.token) {
     return <Navigate to="/practice" replace />;
   }
@@ -41,7 +38,6 @@ const MainLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    // Имитация загрузки приложения (брендинг)
     const t = setTimeout(() => setIsLoading(false), 2200);
     return () => clearTimeout(t);
   }, []);
@@ -50,12 +46,10 @@ const MainLayout = () => {
     <>
       {isLoading && <IntroLoader />}
       
-      {/* --- НАСТРОЙКА УВЕДОМЛЕНИЙ (Тосты) --- */}
       <Toaster
         position="top-center"
         reverseOrder={false}
         toastOptions={{
-          // Глобальный стиль под "Glassmorphism"
           style: {
             background: 'rgba(30, 41, 59, 0.95)',
             color: '#f8fafc',
@@ -86,10 +80,8 @@ const MainLayout = () => {
             <Route path="/" element={<Home />} />
             <Route path="/practice" element={<ProtectedRoute><Recorder /></ProtectedRoute>} />
             
-            {/* --- LIVE ТРЕНЕР --- */}
             <Route path="/companion" element={<ProtectedRoute><LiveTrainer /></ProtectedRoute>} />
             
-            {/* --- ПРОФИЛЬ И ГЕЙМИФИКАЦИЯ --- */}
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />

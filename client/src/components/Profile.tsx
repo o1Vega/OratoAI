@@ -20,24 +20,19 @@ const Profile = () => {
 
   if (!profile) return <div style={{textAlign:'center'}}>Профиль недоступен</div>;
 
-  // Вычисляем процент заполнения бара
-  // Защита от деления на 0, если вдруг с бэка придет 0
   const progressPercent = Math.min(100, Math.max(0, (profile.xp / (profile.nextLvlXp || 1)) * 100));
 
   return (
     <div className="fade-in">
       
-      {/* --- ШАПКА ПРОФИЛЯ --- */}
       <div className="profile-header">
         <div className="avatar-placeholder">
-            {/* Первая буква имени */}
             {profile.username.charAt(0)}
         </div>
         
         <div style={{ flex: 1, width: '100%' }}>
             <div style={{ display: 'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'5px' }}>
                <h1 style={{ fontSize: '2.5rem', margin: 0, lineHeight: 1 }}>{profile.username}</h1>
-               {/* Иконка уровня справа */}
                <div style={{ background:'var(--primary)', width:'40px', height:'40px', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold' }}>
                  {profile.level}
                </div>
@@ -45,7 +40,6 @@ const Profile = () => {
             
             <p className="rank-badge">{profile.title}</p>
             
-            {/* PROGRESS BAR */}
             <div className="xp-bar-container">
                 <div className="xp-info">
                     <span>XP: {profile.xp}</span>
@@ -58,7 +52,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* --- СТАТИСТИКА (ГРИД) --- */}
       <div className="metrics-grid" style={{ marginTop: '2rem' }}>
         <div className="metric-card">
             <Flame size={32} color="#f97316" style={{marginBottom:'1rem'}}/>
@@ -77,7 +70,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* --- КОЛЛЕКЦИЯ БЕЙДЖЕЙ --- */}
       <div style={{ marginTop: '4rem' }}>
         <h2 style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom: '1.5rem' }}>
             <Medal color="var(--accent)"/> Зал Славы
@@ -100,43 +92,40 @@ const Profile = () => {
   );
 };
 
-// Компонент отдельного бейджа
 const BadgeItem = ({ id }: { id: string }) => {
-    // Данные о всех возможных наградах (Mapping)
     const badgeConfig: Record<string, { name: string, desc: string, color: string, icon: any }> = {
         'level_2': { 
             name: 'Новое Начало', 
             desc: 'Достигнут 2 уровень мастерства', 
-            color: '#60a5fa', // Blue
+            color: '#60a5fa', 
             icon: <Target size={28}/> 
         },
         'level_5': { 
             name: 'Опытный Спикер', 
             desc: 'Достигнут 5 уровень', 
-            color: '#8b5cf6', // Violet
+            color: '#8b5cf6', 
             icon: <Zap size={28}/> 
         },
         'clean_speaker': { 
             name: 'Чистая Речь', 
             desc: 'Анализ без слов-паразитов (90+)', 
-            color: '#10b981', // Green
+            color: '#10b981', 
             icon: <Sparkles size={28}/> 
         },
         'streak_3': { 
             name: 'В огне (3 дня)', 
             desc: 'Практика 3 дня подряд', 
-            color: '#f97316', // Orange
+            color: '#f97316', 
             icon: <Flame size={28}/> 
         },
         'streak_5': { 
             name: 'Марафонец (5 дней)', 
             desc: 'Практика 5 дней подряд', 
-            color: '#ef4444', // Red
+            color: '#ef4444', 
             icon: <Crown size={28}/> 
         }
     };
 
-    // Если бейдж есть в базе, но нет в конфиге - ставим дефолт
     const info = badgeConfig[id] || { 
         name: 'Секретная Награда', 
         desc: 'Достижение разблокировано', 

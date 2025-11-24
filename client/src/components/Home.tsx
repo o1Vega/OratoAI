@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom';
-import { useContext, ReactNode } from 'react'; // use -> useContext
+import { useContext, ReactNode } from 'react';
 import { AuthContext } from '../AuthContext';
 import { Mic, Zap, Shield, TrendingUp, BrainCircuit, Sparkles } from 'lucide-react';
 
 const Home = () => {
-  const auth = useContext(AuthContext); // auth может быть null
+  const auth = useContext(AuthContext);
 
   return (
     <div className="fade-in">
-      {/*  HERO SECTION  */}
+      
       <div style={{ textAlign: 'center', padding: '4rem 0 6rem' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: 'rgba(139, 92, 246, 0.1)', padding: '0.5rem 1rem', borderRadius: '50px', marginBottom: '1.5rem', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
           <Sparkles size={16} color="var(--primary)" />
@@ -40,7 +40,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/*  FEATURES GRID  */}
       <div className="metrics-grid" style={{ marginBottom: '6rem' }}>
         <FeatureCard 
           icon={<Mic color="var(--primary)" />}
@@ -59,7 +58,6 @@ const Home = () => {
         />
       </div>
 
-      {/*  WHY US  */}
       <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', padding: '3rem', textAlign: 'center' }}>
         <h2>Почему Orato AI?</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', textAlign: 'left' }}>
@@ -88,7 +86,6 @@ const Home = () => {
   );
 };
 
-// Интерфейс пропсов для компонента
 interface FeatureCardProps {
   icon: ReactNode;
   title: string;

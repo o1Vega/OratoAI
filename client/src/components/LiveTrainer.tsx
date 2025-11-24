@@ -11,20 +11,16 @@ const LiveTrainer = () => {
   const [lastPhrase, setLastPhrase] = useState("Выберите режим и нажмите микрофон.");
   const [mode, setMode] = useState<ModeType>('mentor');
   
-  // Ключи из .env
   const ELEVEN_KEY = import.meta.env.VITE_ELEVEN_API_KEY;
-  const VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // Rachel (Стандартный, 100% работает)
+  const VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; 
 
-  // Ссылки
-  const audioRef = useRef<HTMLAudioElement | null>(null); // Для MP3
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
-  const modeRef = useRef<ModeType>('mentor'); // Хак для замыкания
+  const modeRef = useRef<ModeType>('mentor');
 
-  // Обновляем ref при смене режима
   useEffect(() => { modeRef.current = mode; }, [mode]);
 
   useEffect(() => {
-    // Инициализация распознавания речи (как и раньше)
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
@@ -49,10 +45,8 @@ const LiveTrainer = () => {
     }
   }, []);
 
-  // --- УПРАВЛЕНИЕ СЕССИЕЙ ---
-  
   const startSession = () => {
-    stopAudio(); // Сброс звука
+    stopAudio();
     setStatus('LISTENING');
     setLastPhrase("Слушаю...");
     try { recognitionRef.current?.start(); } catch {}
@@ -71,20 +65,16 @@ const LiveTrainer = () => {
     }
   };
 
-  // --- ОБРАБОТКА СООБЩЕНИЯ ---
-
   const handleSend = async (text: string) => {
     setStatus('THINKING');
     setLastPhrase(`Вы: "${text}"`);
 
     try {
-      // 1. Идем к Gemini за текстом ответа
       const res = await chatWithCompanion(text, modeRef.current);
       const replyText = res.data.reply;
       
       setLastPhrase(replyText);
       
-      // 2. Идем к ElevenLabs за звуком (ОЗВУЧКА)
       await streamAudioFromEleven(replyText);
 
     } catch (e) {
@@ -94,7 +84,6 @@ const LiveTrainer = () => {
     }
   };
 
-  // --- ELEVEN LABS TTS ---
   const streamAudioFromEleven = async (text: string) => {
     if (!ELEVEN_KEY) {
         toast.error("Нет API ключа ElevenLabs");
@@ -103,7 +92,6 @@ const LiveTrainer = () => {
     }
 
     try {
-        // Запрос к API ElevenLabs
         const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
             method: 'POST',
             headers: {
@@ -112,28 +100,25 @@ const LiveTrainer = () => {
             },
             body: JSON.stringify({
                 text: text,
-                model_id: "eleven_multilingual_v2", // <--- ВАЖНО ДЛЯ РУССКОГО
+                model_id: "eleven_multilingual_v2",
                 voice_settings: {
-                    stability: 0.5,       // Экспрессия (ниже - больше эмоций)
-                    similarity_boost: 0.8 // Похожесть голоса
+                    stability: 0.5,
+                    similarity_boost: 0.8
                 }
             })
         });
 
         if (!response.ok) throw new Error("ElevenLabs API Error");
 
-        // Получаем аудио-файл (Blob)
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
 
-        // Запуск визуализации
         audio.onplay = () => setStatus('SPEAKING');
         audio.onended = () => setStatus('IDLE');
         
-        // Запуск звука
         audio.play();
 
     } catch (err) {
@@ -146,14 +131,12 @@ const LiveTrainer = () => {
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '75vh', gap: '2rem' }}>
       
-      {/* Выбор режима */}
       <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '16px', marginBottom:'1rem' }}>
           <ModeBtn label="Ментор" active={mode === 'mentor'} onClick={() => setMode('mentor')} color="#10b981" icon={<HeartHandshake size={16}/>} />
           <ModeBtn label="Интервью" active={mode === 'interview'} onClick={() => setMode('interview')} color="#8b5cf6" icon={<Briefcase size={16}/>} />
           <ModeBtn label="Дебаты" active={mode === 'debate'} onClick={() => setMode('debate')} color="#f43f5e" icon={<Swords size={16}/>} />
       </div>
 
-      {/* Визуал Эквалайзер */}
       <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {status === 'IDLE' && <Activity size={64} color="var(--text-muted)" style={{opacity:0.3}} />}
         {status === 'LISTENING' && <div className="pulse-mic"><Mic size={64} color="var(--primary)" /></div>}
@@ -165,7 +148,6 @@ const LiveTrainer = () => {
         )}
       </div>
 
-      {/* Блок текста */}
       <div className="card" style={{ 
           minWidth: '300px', maxWidth: '650px', minHeight: '120px', 
           display:'flex', alignItems:'center', justifyContent:'center',
@@ -177,7 +159,6 @@ const LiveTrainer = () => {
           <p style={{ margin: 0 }}>{lastPhrase}</p>
       </div>
 
-      {/* Кнопки */}
       {status === 'IDLE' ? (
         <button onClick={startSession} className="btn btn-primary" style={{borderRadius: '50px', padding: '1rem 3.5rem', fontSize:'1.2rem', background: `linear-gradient(135deg, ${getColor(mode)}, #111)`}}>
           <Mic size={24} /> Начать
@@ -191,7 +172,6 @@ const LiveTrainer = () => {
   );
 };
 
-// Helper Styles
 const ModeBtn = ({label, active, onClick, color, icon}: any) => (
     <button onClick={onClick} style={{
         background: active ? color : 'transparent', color: active ? 'white' : 'var(--text-muted)',

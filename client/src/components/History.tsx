@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { fetchHistory, clearHistory, HistoryItem } from '../api';
 import { Loader2, X, FileText, Zap, Trash2, AlertCircle, TrendingUp, Activity } from 'lucide-react';
 import toast from 'react-hot-toast';
-// ИМПОРТ ГРАФИКОВ
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area 
 } from 'recharts';
@@ -15,10 +14,7 @@ const History = () => {
   useEffect(() => {
     fetchHistory()
       .then(res => {
-          // Сортируем по дате (от старых к новым) для графика, 
-          // но в таблице покажем наоборот
           const data = Array.isArray(res.data) ? res.data : [];
-          // Recharts любит данные в хронологическом порядке (слева направо)
           setHistory(data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
       })
       .catch(() => setHistory([]))
@@ -39,14 +35,11 @@ const History = () => {
     }
   };
 
-  // Подготовка данных для графика
-  // Преобразуем дату в короткий формат "DD.MM"
   const chartData = history.map(h => ({
     ...h,
     shortDate: new Date(h.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })
   }));
 
-  // Данные для таблицы (обратный порядок - новые сверху)
   const tableData = [...history].reverse();
 
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', marginTop: '50px' }}><Loader2 className="spin" color="var(--primary)"/></div>;
@@ -54,7 +47,6 @@ const History = () => {
   return (
     <div className="fade-in">
       
-      {/* ЗАГОЛОВОК */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h1>Ваш Прогресс</h1>
         {history.length > 0 && (
@@ -72,10 +64,8 @@ const History = () => {
         </div>
       ) : (
         <>
-          {/* --- ГРАФИКИ (Только если есть данные) --- */}
           <div className="metrics-grid" style={{ marginBottom: '2rem', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
             
-            {/* График 1: Оценка (Clarity Score) */}
             <div className="card" style={{ padding: '1.5rem' }}>
               <h3 style={{ fontSize: '1.1rem', display:'flex', alignItems:'center', gap:'10px', marginBottom:'1rem' }}>
                 <TrendingUp size={20} color="var(--primary)"/> Динамика Оценки
@@ -102,7 +92,6 @@ const History = () => {
               </div>
             </div>
 
-            {/* График 2: Скорость (Pace) */}
             <div className="card" style={{ padding: '1.5rem' }}>
               <h3 style={{ fontSize: '1.1rem', display:'flex', alignItems:'center', gap:'10px', marginBottom:'1rem' }}>
                 <Activity size={20} color="var(--accent)"/> Темп речи (WPM)
@@ -125,7 +114,6 @@ const History = () => {
 
           </div>
 
-          {/* --- ТАБЛИЦА ИСТОРИИ --- */}
           <div className="card">
             <h3 style={{ padding: '1.5rem', paddingBottom:0, margin:0, fontSize:'1.2rem', color:'var(--text-muted)' }}>Список записей</h3>
             <table className="history-table">
@@ -162,7 +150,6 @@ const History = () => {
         </>
       )}
 
-      {/* MODAL DETAILS */}
       {selectedItem && (
         <div className="modal-overlay" onClick={() => setSelectedItem(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>

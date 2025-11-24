@@ -23,7 +23,6 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      // Отключаем требование explicit-any, если нужно быстро мигрировать
       '@typescript-eslint/no-explicit-any': 'warn', 
     },
   },

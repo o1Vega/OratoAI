@@ -1,30 +1,24 @@
 import axios, { InternalAxiosRequestConfig } from 'axios';
 
-// --- 1. Типы данных (Контракт с Go сервером) ---
-
-// Ответы авторизации (Токен, Шаг верификации или Ошибка)
 export interface AuthResponse {
   token?: string;
   message?: string;
-  step?: string; // "VERIFY"
+  step?: string;
   error?: string;
 }
 
-// Данные для регистрации (что отправляем)
 export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
-  telegramId: string; // Строка, так как с Input всегда приходит string
+  telegramId: string;
 }
 
-// Данные для входа
 export interface LoginRequest {
   email: string;
   password: string;
 }
 
-// Данные для проверки кода
 export interface VerifyRequest {
   email: string;
   code: string;
@@ -38,22 +32,20 @@ export interface AnalysisMetrics {
   conciseness: number;
 }
 
-// Результат анализа речи (совпадает с JSON от Gemini + Pace из Go)
 export interface AnalysisData {
   clarityScore: number;
   pace: number;
   fillerWords: string[];
   feedback: string;
   tip: string;
-  transcript?: string; // В истории есть, при анализе сразу может не быть в ответе, но полезно знать
+  transcript?: string;
   metrics?: AnalysisMetrics;
 }
 
-// Элемент истории (наследует анализ + добавляет ID и Дату)
 export interface HistoryItem extends AnalysisData {
   id: number;
   transcript: string;
-  date: string; // ISO string date
+  date: string;
 }
 
 export interface CompanionResponse {
@@ -64,16 +56,13 @@ export interface UserProfile {
   username: string;
   xp: number;
   level: number;
-  nextLvlXp: number; // Максимум XP для текущего уровня (для прогресс бара)
+  nextLvlXp: number;
   streak: number;
-  badges: string[];  // Массив ID бейджей, например ["clean_speaker", "level_5"]
-  title: string;     // Звание (Новичок, Легенда)
+  badges: string[];
+  title: string;
 }
 
-// --- 2. Настройка Axios ---
-
 export const api = axios.create({
-  // В продакшене лучше использовать import.meta.env.VITE_API_URL
   baseURL: 'http://localhost:5000/api',
 });
 
@@ -85,9 +74,6 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
-// --- 3. Методы API ---
-
-// АВТОРИЗАЦИЯ
 export const registerInit = async (data: RegisterRequest) => {
   return api.post<AuthResponse>('/auth/register-init', data);
 };
@@ -100,9 +86,7 @@ export const verifyCode = async (data: VerifyRequest) => {
   return api.post<AuthResponse>('/auth/verify', data);
 };
 
-// ФУНКЦИОНАЛ ПРИЛОЖЕНИЯ
 export const analyzeSpeech = async (text: string, sec: number) => {
-  // Важно: 'durationSeconds' должно совпадать с тем, что ждет Go структура
   return api.post<AnalysisData>('/analyze', { transcript: text, durationSeconds: sec });
 };
 

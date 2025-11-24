@@ -2,7 +2,6 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Responsi
 import { AnalysisMetrics } from '../api';
 
 const RadarChartSkill = ({ metrics }: { metrics: AnalysisMetrics }) => {
-  // Преобразуем объект в формат массива для Recharts
   const data = [
     { subject: 'Уверенность', A: metrics.confidence, fullMark: 100 },
     { subject: 'Лексика', A: metrics.vocabulary, fullMark: 100 },

@@ -1,38 +1,29 @@
-/* =========================================
-   FONTS & VARIABLES
-   ========================================= */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
-  /* Colors */
   --bg-dark: #030712;
   --glass-bg: rgba(17, 24, 39, 0.7);
   --glass-border: rgba(255, 255, 255, 0.08);
   
-  --primary: #8b5cf6;       /* Violet */
+  --primary: #8b5cf6;
   --primary-glow: rgba(139, 92, 246, 0.5);
   --primary-dark: #7c3aed;
   
-  --accent: #06b6d4;        /* Cyan */
+  --accent: #06b6d4;
   --accent-glow: rgba(6, 182, 212, 0.5);
   
-  --danger: #f43f5e;        /* Red/Pink */
-  --success: #10b981;       /* Green */
+  --danger: #f43f5e;
+  --success: #10b981;
   
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   
-  /* Fonts */
   --font-main: 'Outfit', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
-/* =========================================
-   GLOBAL & LAYOUT
-   ========================================= */
 body {
   background-color: var(--bg-dark);
-  /* Живой фон с градиентными пятнами */
   background-image: 
     radial-gradient(circle at 15% 25%, rgba(139, 92, 246, 0.15) 0%, transparent 25%),
     radial-gradient(circle at 85% 75%, rgba(6, 182, 212, 0.15) 0%, transparent 25%);
@@ -43,7 +34,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Основной контейнер с отступом сверху, чтобы не прилипал к меню */
 .main-container {
   max-width: 1100px;
   margin: 0 auto;
@@ -53,16 +43,12 @@ body {
   z-index: 1;
 }
 
-/* Управление видимостью при загрузке */
 .app-content {
   transition: opacity 0.8s ease-in-out;
 }
 .visible-content { opacity: 1; }
 .hidden-content { opacity: 0; height: 100vh; overflow: hidden; }
 
-/* =========================================
-   TYPOGRAPHY & CARDS
-   ========================================= */
 h1, h2, h3 { 
   font-weight: 700; 
   letter-spacing: -0.02em; 
@@ -88,25 +74,22 @@ h1 {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-/* Легкий ховер эффект для карточек */
+
 .card:hover {
   border-color: rgba(255,255,255,0.15);
 }
 
-/* =========================================
-   NAVBAR
-   ========================================= */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: rgba(3, 7, 18, 0.85); /* Чуть менее прозрачный для читаемости */
+  background: rgba(3, 7, 18, 0.85);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--glass-border);
   position: sticky;
   top: 0;
-  z-index: 100; /* Поверх контента */
+  z-index: 100;
 }
 
 .nav-links a { 
@@ -123,9 +106,6 @@ h1 {
   text-shadow: 0 0 10px var(--primary-glow); 
 }
 
-/* =========================================
-   BUTTONS & INPUTS
-   ========================================= */
 .btn {
   padding: 0.9rem 2rem;
   border-radius: 0.75rem;
@@ -185,9 +165,6 @@ input:focus {
   box-shadow: 0 0 0 1px var(--primary-glow);
 }
 
-/* =========================================
-   RECORDER & TRANSCRIPT
-   ========================================= */
 .timer-display {
   font-family: var(--font-mono);
   font-size: 5rem;
@@ -212,9 +189,6 @@ input:focus {
   font-size: 1.1rem;
 }
 
-/* =========================================
-    RESULTS SECTION
-   ========================================= */
 .result-section {
   margin-top: 3rem;
   border-top: 1px solid var(--glass-border);
@@ -222,12 +196,11 @@ input:focus {
   animation: slideUp 0.6s ease-out forwards;
 }
 
-/* Круг с оценкой */
 .score-circle {
   width: 130px;
   height: 130px;
   border-radius: 50%;
-  border: 4px solid var(--glass-border); /* Базовый круг */
+  border: 4px solid var(--glass-border);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -238,7 +211,6 @@ input:focus {
   position: relative;
 }
 
-/* Вращающаяся обводка */
 .score-circle::before {
   content: '';
   position: absolute;
@@ -253,7 +225,6 @@ input:focus {
 .score-value { font-size: 3rem; font-weight: 800; color: white; line-height: 1; }
 .score-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; }
 
-/* Сетка метрик */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -272,9 +243,6 @@ input:focus {
 .metric-val { font-size: 2.5rem; font-weight: 800; color: var(--primary); }
 .metric-label { font-size: 0.75rem; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; }
 
-/* =========================================
-   HISTORY & MODAL
-   ========================================= */
 .history-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
 .history-table th { text-align: left; padding: 1rem; color: var(--text-muted); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .history-table td { background: rgba(255,255,255,0.03); padding: 1rem; border: 1px solid var(--glass-border); transition: background 0.2s; }
@@ -285,7 +253,6 @@ input:focus {
 .history-row { cursor: pointer; }
 .history-row:hover td { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.2); }
 
-/* Модальное окн */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -299,7 +266,6 @@ input:focus {
   animation: fadeIn 0.2s ease-out;
 }
 
-/* Контент модального окна */
 .modal-content {
   background: #1e293b;
   border: 1px solid var(--glass-border);
@@ -328,9 +294,6 @@ input:focus {
 }
 .modal-close:hover { background: var(--danger); color: white; }
 
-/* =========================================
-    INTRO LOADER
-   ========================================= */
 .intro-loader {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -351,9 +314,6 @@ input:focus {
   animation: ripple 2s infinite;
 }
 
-/* =========================================
-    ANIMATIONS
-   ========================================= */
 .fade-in { animation: fadeIn 0.6s ease-out forwards; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -362,11 +322,9 @@ input:focus {
 @keyframes spin { 100% { transform: rotate(360deg); } }
 @keyframes modalPop { from { transform: scale(0.9) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
 
-/* Утилиты */
 .spin { animation: spin 1s linear infinite; }
 
 
-/* Делаем карточку кликабельной */
 .interactive-card {
   cursor: pointer;
   position: relative;
@@ -380,7 +338,6 @@ input:focus {
   box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 
-/* список слов */
 .fillers-list {
   margin-top: 1rem;
   padding-top: 1rem;
@@ -392,7 +349,6 @@ input:focus {
   animation: slideDown 0.3s ease-out;
 }
 
-/* Стиль */
 .filler-tag {
   background: rgba(244, 63, 94, 0.2);
   color: #fda4af;
@@ -408,7 +364,6 @@ input:focus {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- адаптация --- */
 @media (max-width: 768px) {
   h1 { font-size: 2.5rem !important; }
   .navbar { padding: 1rem; }
@@ -417,9 +372,6 @@ input:focus {
   .main-container { padding: 1rem; padding-top: 2rem; }
 }
 
-/* --- GIZMOS FOR LIVE TRAINER --- */
-
-/* 1. Эквалайзер (Волна) */
 .voice-wave {
   display: flex;
   align-items: center;
@@ -446,7 +398,6 @@ input:focus {
   50% { height: 100%; transform: scaleY(1.2); }
 }
 
-/* 2. Пульс микрофона */
 .pulse-mic {
   animation: mic-breath 1.5s ease-in-out infinite;
 }
@@ -456,7 +407,6 @@ input:focus {
   50% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 25px var(--primary)); }
 }
 
-/* 3. Лоадер точек (думает) */
 .loader-dots { display: flex; gap: 5px; }
 .loader-dots span {
   width: 10px; height: 10px;
@@ -468,14 +418,11 @@ input:focus {
 .loader-dots span:nth-child(2) { animation-delay: -0.16s; }
 @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 
-/* --- ПРОФИЛЬ (Gamification) --- */
-
 .profile-header {
   display: flex;
   align-items: center;
   gap: 2rem;
   padding: 2.5rem;
-  /* Стильный градиент на фоне */
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.1));
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 1.5rem;
@@ -506,7 +453,6 @@ input:focus {
   font-weight: 500;
 }
 
-/* Progress Bar */
 .xp-bar-container {
   width: 100%;
   margin-top: 0.5rem;
@@ -537,7 +483,6 @@ input:focus {
   box-shadow: 0 0 10px var(--primary-glow);
 }
 
-/* Бейджи (Ачивки) */
 .badges-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -547,7 +492,7 @@ input:focus {
 
 .badge-card {
   background: rgba(255,255,255,0.03);
-  border: 1px solid; /* Цвет будет задаваться инлайном */
+  border: 1px solid;
   border-radius: 1rem;
   padding: 1.5rem;
   display: flex;
@@ -569,7 +514,7 @@ input:focus {
   content: "";
   position: absolute;
   top: 0; left: 0; width: 100%; height: 4px;
-  background: currentColor; /* Берет цвет текста карточки */
+  background: currentColor;
   opacity: 0.5;
 }
 
