@@ -146,7 +146,7 @@ const Auth = () => {
                     required 
                   />
                   <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block', marginTop: '-10px' }}>
-                    Напишите <b>/start</b> нашему боту, чтобы узнать ID
+                    Напишите <b>/start</b> нашему боту (@oratoai_bot), чтобы узнать ID
                   </small>
                 </div>
               </>
