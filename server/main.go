@@ -33,6 +33,7 @@ func main() {
 	mux.HandleFunc("/api/companion/chat", authMiddleware(handleCompanion))
 	mux.HandleFunc("/api/history", authMiddleware(handleHistory))
 	mux.HandleFunc("/api/profile", authMiddleware(handleGetProfile))
+	mux.HandleFunc("/api/topics/random", authMiddleware(handleGetTopic))
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

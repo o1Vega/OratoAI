@@ -86,8 +86,8 @@ export const verifyCode = async (data: VerifyRequest) => {
   return api.post<AuthResponse>('/auth/verify', data);
 };
 
-export const analyzeSpeech = async (text: string, sec: number) => {
-  return api.post<AnalysisData>('/analyze', { transcript: text, durationSeconds: sec });
+export const analyzeSpeech = async (text: string, sec: number, language: string) => {
+  return api.post<AnalysisData>('/analyze', { transcript: text, durationSeconds: sec, language });
 };
 
 export const fetchHistory = async () => {
@@ -98,10 +98,14 @@ export const clearHistory = async () => {
   return api.delete<{ msg: string }>('/history');
 };
 
-export const chatWithCompanion = async (message: string, mode: string = 'mentor') => {
-  return api.post<CompanionResponse>('/companion/chat', { message, mode });
+export const chatWithCompanion = async (message: string, mode: string = 'mentor', language: string) => {
+  return api.post<CompanionResponse>('/companion/chat', { message, mode, language });
 };
 
 export const getProfile = async () => {
-  return api.get<UserProfile>('/profile'); 
+  return api.get<UserProfile>('/profile');
+};
+
+export const getRandomTopic = async (language: string) => {
+  return api.get<{ id: number; text: string }>(`/topics/random?lang=${language}`);
 };

@@ -11,7 +11,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
-	_ "modernc.org/sqlite" 
+	_ "modernc.org/sqlite"
 )
 
 var (
@@ -53,15 +53,56 @@ func initDB() {
 		filler_words TEXT,
 		feedback TEXT,
 		tip TEXT,
-		metrics TEXT DEFAULT '{}',  -- <-- НОВАЯ КОЛОНКА ДЛЯ ДИАГРАММЫ
+		metrics TEXT DEFAULT '{}',
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		FOREIGN KEY(user_id) REFERENCES users(id)
+	);
+	CREATE TABLE IF NOT EXISTS topics (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		text_ru TEXT,
+		text_en TEXT
 	);`
 
 	_, err = db.Exec(query)
 	if err != nil {
 		log.Fatal("[!] DB Init Error:", err)
 	}
+
+	// Seeding topics
+	var count int
+	db.QueryRow("SELECT COUNT(*) FROM topics").Scan(&count)
+	if count == 0 {
+		fmt.Println("[*] Seeding database with topics...")
+		seedTopics := []struct{ ru, en string }{
+			{"Расскажи о своем хобби так, чтобы я захотел им заняться.", "Tell me about your hobby so that I want to do it."},
+			{"Если бы у тебя был миллион долларов, как бы ты его потратил за 24 часа?", "If you had a million dollars, how would you spend it in 24 hours?"},
+			{"Искусственный интеллект: угроза или спасение? Твое мнение.", "Artificial Intelligence: Threat or Salvation? Your opinion."},
+			{"Лучший совет, который тебе когда-либо давали.", "The best advice you've ever been given."},
+			{"Расскажи смешную историю из детства.", "Tell a funny story from your childhood."},
+			{"Почему дисциплина важнее мотивации?", "Why is discipline more important than motivation?"},
+			{"Три книги (или фильма), которые изменили твое мировоззрение.", "Three books (or movies) that changed your worldview."},
+			{"Продай мне эту ручку 🖊️", "Sell me this pen 🖊️"},
+			{"Каким будет мир через 50 лет?", "What will the world be like in 50 years?"},
+			{"Почему неудачи важны для успеха?", "Why is failure important for success?"},
+			{"Твое идеальное утро: опиши его.", "Your ideal morning: describe it."},
+			{"Если бы ты мог поужинать с любым историческим персонажем, кто бы это был?", "If you could have dinner with any historical figure, who would it be?"},
+			{"Удаленная работа или офис: что лучше?", "Remote work or office: which is better?"},
+			{"Твой самый большой страх и как ты с ним борешься.", "Your biggest fear and how you deal with it."},
+			{"Объясни пятилетнему ребенку, как работает интернет.", "Explain to a five-year-old how the internet works."},
+			{"Что важнее: талант или упорный труд?", "What is more important: talent or hard work?"},
+			{"Как технологии меняют общение между людьми?", "How are technologies changing communication between people?"},
+			{"Твой любимый город и почему.", "Your favorite city and why."},
+			{"Если бы ты мог выучить любой навык за час, что бы это было?", "If you could learn any skill in an hour, what would it be?"},
+			{"Какую суперспособность ты бы выбрал и почему?", "Which super power would you choose and why?"},
+		}
+		for _, t := range seedTopics {
+			_, err := db.Exec("INSERT INTO topics (text_ru, text_en) VALUES (?, ?)", t.ru, t.en)
+			if err != nil {
+				log.Println("[!] Seed Error:", err)
+			}
+		}
+	}
+
 	fmt.Println("[+] Database initialized successfully (Orato v2)")
 }
 

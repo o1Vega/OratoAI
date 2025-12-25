@@ -5,6 +5,7 @@ import { AuthContext } from '../AuthContext';
 import { Loader2, ShieldCheck, Send, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { AxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
 
 interface ErrorResponse {
   error: string;
@@ -12,19 +13,20 @@ interface ErrorResponse {
 
 const Auth = () => {
   const auth = useContext(AuthContext);
-  const setAuth = auth?.setAuth || (() => {});
+  const setAuth = auth?.setAuth || (() => { });
   const navigate = useNavigate();
-  
+  const { t } = useTranslation();
+
   const [isLogin, setIsLogin] = useState(true);
   const [step, setStep] = useState<'INIT' | 'VERIFY'>('INIT');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
-  const [formData, setFormData] = useState<RegisterRequest>({ 
-    username: '', 
-    email: '', 
-    password: '', 
-    telegramId: '' 
+
+  const [formData, setFormData] = useState<RegisterRequest>({
+    username: '',
+    email: '',
+    password: '',
+    telegramId: ''
   });
 
   const [errors, setErrors] = useState({
@@ -41,47 +43,55 @@ const Auth = () => {
     if (!pass) return 0;
     if (pass.length >= 8) score += 1;
     if (pass.length > 10) score += 1;
-    if (/[A-Z]/.test(pass)) score += 1; 
-    if (/[0-9]/.test(pass)) score += 1; 
-    if (/[^A-Za-z0-9]/.test(pass)) score += 1; 
+    if (/[A-Z]/.test(pass)) score += 1;
+    if (/[0-9]/.test(pass)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
     return score;
   };
 
   const strength = getPasswordStrength(formData.password);
   const strengthColor = ['#cbd5e1', '#ef4444', '#f97316', '#eab308', '#84cc16', '#10b981'];
-  const strengthLabel = ['Введите пароль', 'Слабый', 'Средний', 'Нормальный', 'Хороший', 'Отличный'];
+
+  const strengthLabel = [
+    t('auth.strength.label', 'Введите пароль'),
+    t('auth.strength.weak', 'Слабый'),
+    t('auth.strength.medium', 'Средний'),
+    t('auth.strength.normal', 'Нормальный'),
+    t('auth.strength.good', 'Хороший'),
+    t('auth.strength.excellent', 'Отличный')
+  ];
 
   const validateField = (name: string, value: string) => {
     let errorMsg = '';
 
     switch (name) {
       case 'username':
-        if (!isLogin) { 
-            if (/[а-яА-ЯёЁ]/.test(value)) errorMsg = 'Никнейм не должен содержать русские буквы';
-            else if (value.length > 0 && value.length < 3) errorMsg = 'Минимум 3 символа';
-            else if (!/^[a-zA-Z0-9_]*$/.test(value)) errorMsg = 'Только латиница, цифры и "_"';
+        if (!isLogin) {
+          if (/[а-яА-ЯёЁ]/.test(value)) errorMsg = t('auth.errors.username_cyrillic', 'Никнейм не должен содержать русские буквы');
+          else if (value.length > 0 && value.length < 3) errorMsg = t('auth.errors.username_length', 'Минимум 3 символа');
+          else if (!/^[a-zA-Z0-9_]*$/.test(value)) errorMsg = t('auth.errors.username_format', 'Только латиница, цифры и "_"');
         }
         break;
 
       case 'email':
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (value && !emailRegex.test(value)) errorMsg = 'Некорректный формат Email';
+        if (value && !emailRegex.test(value)) errorMsg = t('auth.errors.email_format', 'Некорректный формат Email');
         break;
 
       case 'password':
         if (/[а-яА-ЯёЁ]/.test(value)) {
-            errorMsg = 'Русские буквы в пароле запрещены';
-        } else if (!isLogin) { 
-            if (value.length > 0 && value.length < 8) errorMsg = 'Минимум 8 символов';
-            else if (getPasswordStrength(value) < 2) errorMsg = 'Пароль слишком простой';
+          errorMsg = t('auth.errors.password_cyrillic', 'Русские буквы в пароле запрещены');
+        } else if (!isLogin) {
+          if (value.length > 0 && value.length < 8) errorMsg = t('auth.errors.password_length', 'Минимум 8 символов');
+          else if (getPasswordStrength(value) < 2) errorMsg = t('auth.errors.password_simple', 'Пароль слишком простой');
         } else {
-            if (value.length === 0) errorMsg = ''; 
+          if (value.length === 0) errorMsg = '';
         }
         break;
 
       case 'telegramId':
         if (!isLogin && value.length > 0 && !/^\d+$/.test(value)) {
-            errorMsg = 'ID должен состоять только из цифр';
+          errorMsg = t('auth.errors.telegram_digits', 'ID должен состоять только из цифр');
         }
         break;
     }
@@ -100,8 +110,8 @@ const Auth = () => {
     if (Object.values(errors).some(msg => msg !== '')) return false;
     if (!formData.email || !formData.password) return false;
     if (!isLogin) {
-        if (!formData.username || !formData.telegramId) return false;
-        if (strength < 2) return false; 
+      if (!formData.username || !formData.telegramId) return false;
+      if (strength < 2) return false;
     }
     return true;
   };
@@ -110,24 +120,24 @@ const Auth = () => {
     e.preventDefault();
     if (!isFormValid()) return;
     setLoading(true);
-    
+
     try {
       if (isLogin) {
         const res = await loginInit({ email: formData.email, password: formData.password });
         if (res.data.token) {
-            setAuth(res.data.token);
-            toast.success('С возвращением! 👋');
-            navigate('/practice');
-            return;
+          setAuth(res.data.token);
+          toast.success(t('auth.messages.welcome', 'С возвращением! 👋'));
+          navigate('/practice');
+          return;
         }
       } else {
         await registerInit(formData);
       }
-      toast.success('Код отправлен в Telegram ✈️');
+      toast.success(t('auth.messages.code_sent', 'Код отправлен в Telegram ✈️'));
       setStep('VERIFY');
     } catch (err) {
       const axiosError = err as AxiosError<ErrorResponse>;
-      const msg = axiosError.response?.data?.error || 'Ошибка сервера';
+      const msg = axiosError.response?.data?.error || t('auth.messages.error_server', 'Ошибка сервера');
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -143,11 +153,11 @@ const Auth = () => {
       if (isLogin) {
         if (res.data.token) {
           setAuth(res.data.token);
-          toast.success('Вход выполнен успешно! 🚀');
+          toast.success(t('auth.messages.login_success', 'Вход выполнен успешно! 🚀'));
           navigate('/practice');
         }
       } else {
-        toast.success('Регистрация завершена! Войдите.');
+        toast.success(t('auth.messages.register_success', 'Регистрация завершена! Войдите.'));
         setIsLogin(true);
         setStep('INIT');
         setOtp('');
@@ -155,7 +165,7 @@ const Auth = () => {
       }
     } catch (err) {
       const axiosError = err as AxiosError<ErrorResponse>;
-      const msg = axiosError.response?.data?.error || 'Неверный код';
+      const msg = axiosError.response?.data?.error || t('auth.messages.error_code', 'Неверный код');
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -174,18 +184,18 @@ const Auth = () => {
     borderRadius: '8px',
     outline: 'none',
     transition: 'border-color 0.2s',
-    display: 'block' 
+    display: 'block'
   });
 
   return (
     <div className="fade-in" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '85vh' }}>
       <div className="card" style={{ width: '400px', padding: '2.5rem' }}>
-        
+
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <ShieldCheck size={50} color="var(--primary)" style={{ marginBottom: '1rem' }} />
-          <h2 style={{ margin: 0, fontSize: '1.8rem' }}>{isLogin ? 'Вход' : 'Регистрация'}</h2>
+          <h2 style={{ margin: 0, fontSize: '1.8rem' }}>{isLogin ? t('auth.login', 'Вход') : t('auth.register', 'Регистрация')}</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '5px' }}>
-            {step === 'VERIFY' ? 'Проверка безопасности' : 'Заполните данные'}
+            {step === 'VERIFY' ? t('auth.security_check', 'Проверка безопасности') : t('auth.fill_data', 'Заполните данные')}
           </p>
         </div>
 
@@ -194,57 +204,57 @@ const Auth = () => {
             {!isLogin && (
               <>
                 <div style={{ marginBottom: '1.2rem' }}>
-                  <input 
-                    name="username" 
-                    placeholder="Никнейм" 
+                  <input
+                    name="username"
+                    placeholder={t('auth.placeholders.username', 'Никнейм')}
                     value={formData.username}
-                    onChange={handleChange} 
+                    onChange={handleChange}
                     style={inputStyle(!!errors.username)}
                   />
-                  {errors.username && <small style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px' }}><AlertCircle size={12}/> {errors.username}</small>}
+                  {errors.username && <small style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px' }}><AlertCircle size={12} /> {errors.username}</small>}
                 </div>
 
                 <div style={{ marginBottom: '1.2rem' }}>
-                  <input 
-                    name="telegramId" 
-                    placeholder="Telegram Chat ID" 
+                  <input
+                    name="telegramId"
+                    placeholder={t('auth.placeholders.telegram', 'Telegram Chat ID')}
                     value={formData.telegramId}
-                    onChange={handleChange} 
+                    onChange={handleChange}
                     style={inputStyle(!!errors.telegramId)}
                   />
                   {errors.telegramId ? (
-                     <small style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px' }}><AlertCircle size={12}/> {errors.telegramId}</small>
+                    <small style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px' }}><AlertCircle size={12} /> {errors.telegramId}</small>
                   ) : (
-                     <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block', marginTop: '5px' }}>
-                       Бот: <b>@oratoai_bot</b> (/start)
-                     </small>
+                    <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block', marginTop: '5px' }}>
+                      {t('auth.messages.bot_info', 'Бот: ')} <b>@oratoai_bot</b> (/start)
+                    </small>
                   )}
                 </div>
               </>
             )}
-            
+
             <div style={{ marginBottom: '1.2rem' }}>
-              <input 
-                name="email" 
-                type="email" 
-                placeholder="Email адрес" 
+              <input
+                name="email"
+                type="email"
+                placeholder={t('auth.placeholders.email', 'Email адрес')}
                 value={formData.email}
-                onChange={handleChange} 
+                onChange={handleChange}
                 style={inputStyle(!!errors.email)}
               />
-              {errors.email && <small style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px' }}><AlertCircle size={12}/> {errors.email}</small>}
+              {errors.email && <small style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '5px' }}><AlertCircle size={12} /> {errors.email}</small>}
             </div>
-            
+
             {/* Блок пароля */}
             <div style={{ marginBottom: '1.5rem' }}>
               <div style={{ position: 'relative' }}>
-                <input 
-                  name="password" 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="Пароль" 
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t('auth.placeholders.password', 'Пароль')}
                   value={formData.password}
-                  onChange={handleChange} 
-                  style={{...inputStyle(!!errors.password), paddingRight: '45px', marginBottom: 0}}
+                  onChange={handleChange}
+                  style={{ ...inputStyle(!!errors.password), paddingRight: '45px', marginBottom: 0 }}
                 />
                 <button
                   type="button"
@@ -253,7 +263,7 @@ const Auth = () => {
                     position: 'absolute',
                     right: '12px',
                     top: '50%',
-                    transform: 'translateY(-50%)', 
+                    transform: 'translateY(-50%)',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
@@ -267,73 +277,72 @@ const Auth = () => {
                 </button>
               </div>
 
-              {/* Ошибки и шкала вынесены ИЗ relative контейнера, они просто идут следом в потоке */}
               {errors.password && (
-                 <small style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px' }}>
-                    <AlertCircle size={12}/> {errors.password}
-                 </small>
+                <small style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px' }}>
+                  <AlertCircle size={12} /> {errors.password}
+                </small>
               )}
-              
+
               {!isLogin && formData.password && !errors.password && (
                 <div style={{ marginTop: '8px' }}>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '0.7rem', color: strengthColor[strength] }}>{strengthLabel[strength]}</span>
-                   </div>
-                   <div style={{ height: '4px', background: '#f1f5f9', borderRadius: '2px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${(strength / 5) * 100}%`, background: strengthColor[strength], transition: 'all 0.3s' }}></div>
-                   </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.7rem', color: strengthColor[strength] }}>{strengthLabel[strength]}</span>
+                  </div>
+                  <div style={{ height: '4px', background: '#f1f5f9', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${(strength / 5) * 100}%`, background: strengthColor[strength], transition: 'all 0.3s' }}></div>
+                  </div>
                 </div>
               )}
             </div>
 
-            <button 
-                type="submit" 
-                className="btn btn-primary" 
-                style={{ 
-                    width: '100%', 
-                    opacity: isFormValid() ? 1 : 0.6, 
-                    cursor: isFormValid() ? 'pointer' : 'not-allowed',
-                    marginTop: '1rem'
-                }} 
-                disabled={loading || !isFormValid()}
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{
+                width: '100%',
+                opacity: isFormValid() ? 1 : 0.6,
+                cursor: isFormValid() ? 'pointer' : 'not-allowed',
+                marginTop: '1rem'
+              }}
+              disabled={loading || !isFormValid()}
             >
-              {loading ? <Loader2 className="spin" /> : (isLogin ? 'Войти' : 'Создать аккаунт')}
+              {loading ? <Loader2 className="spin" /> : (isLogin ? t('auth.buttons.login', 'Войти') : t('auth.buttons.create', 'Создать аккаунт'))}
             </button>
           </form>
         ) : (
           <form onSubmit={handleVerifySubmit} className="fade-in">
-             <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
               <div style={{ width: '64px', height: '64px', background: 'rgba(var(--primary-rgb), 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
                 <Send color="var(--primary)" size={32} />
               </div>
             </div>
 
-            <input 
+            <input
               name="otp"
               type="text"
               inputMode="numeric"
-              value={otp} 
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} 
-              placeholder="000000" 
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+              placeholder={t('auth.placeholders.code', '000000')}
               style={{ textAlign: 'center', fontSize: '2rem', letterSpacing: '8px', marginBottom: '1.5rem', ...inputStyle(false) }}
-              maxLength={6} 
+              maxLength={6}
             />
-            
+
             <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading || otp.length < 6}>
-              {loading ? <Loader2 className="spin" /> : 'Подтвердить код'}
+              {loading ? <Loader2 className="spin" /> : t('auth.buttons.verify', 'Подтвердить код')}
             </button>
-            <p onClick={() => setStep('INIT')} style={{ textAlign: 'center', marginTop: '1rem', cursor: 'pointer', color: 'var(--text-muted)' }}>← Назад</p>
+            <p onClick={() => setStep('INIT')} style={{ textAlign: 'center', marginTop: '1rem', cursor: 'pointer', color: 'var(--text-muted)' }}>← {t('auth.buttons.back', 'Назад')}</p>
           </form>
         )}
 
         {step === 'INIT' && (
           <p style={{ textAlign: 'center', marginTop: '2rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            {isLogin ? 'Нет аккаунта? ' : 'Уже есть аккаунт? '}
-            <span 
-              style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 'bold' }} 
-              onClick={() => { setIsLogin(!isLogin); setErrors({username:'', email:'', password:'', telegramId:''}); setFormData({username:'', email:'', password:'', telegramId:''}); }}
+            {isLogin ? t('auth.no_account', 'Нет аккаунта? ') : t('auth.have_account', 'Уже есть аккаунт? ')}
+            <span
+              style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 'bold' }}
+              onClick={() => { setIsLogin(!isLogin); setErrors({ username: '', email: '', password: '', telegramId: '' }); setFormData({ username: '', email: '', password: '', telegramId: '' }); }}
             >
-              {isLogin ? 'Регистрация' : 'Вход'}
+              {isLogin ? t('auth.register', 'Регистрация') : t('auth.login', 'Вход')}
             </span>
           </p>
         )}

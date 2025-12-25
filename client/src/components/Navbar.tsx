@@ -1,60 +1,114 @@
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
+import { Mic, LogOut, User, History, Activity } from 'lucide-react';
 import { useContext } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Mic, LogOut, LayoutDashboard, History as HistoryIcon, AudioWaveform, User } from 'lucide-react'; 
 import { AuthContext } from '../AuthContext';
+import BrandLogo from './BrandLogo';
 
-const Navbar = () => {
-  const auth = useContext(AuthContext);
+export default function Navbar() {
+  const { t } = useTranslation();
   const location = useLocation();
-  
-  const isActive = (path: string) => location.pathname === path ? 'active' : '';
+  const navigate = useNavigate();
+  const ctx = useContext(AuthContext);
+  const isAuthPage = location.pathname.startsWith('/auth');
+  const isLoggedIn = !!ctx?.token;
+
+  const handleLogout = () => {
+    ctx?.setAuth(null);
+    navigate('/auth');
+  };
 
   return (
-    <nav className="navbar">
-      <Link to="/" className="nav-brand" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <Mic color="var(--primary)" size={28} />
-        <span style={{ background: 'linear-gradient(to right, #fff, #94a3b8)', WebkitBackgroundClip: 'text', color: 'transparent', fontWeight: 'bold', fontSize: '1.5rem' }}>
+    <nav style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '1.2rem 2rem',
+      background: 'rgba(15, 23, 42, 0.6)',
+      backdropFilter: 'blur(12px)',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100
+    }}>
+      <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <BrandLogo size={36} />
+        <span style={{
+          fontSize: '1.4rem',
+          fontWeight: '700',
+          background: 'linear-gradient(to right, #fff, #cbd5e1)',
+          WebkitBackgroundClip: 'text',
+          color: 'transparent',
+          letterSpacing: '-0.5px'
+        }}>
           Orato AI
         </span>
       </Link>
-      
-      <div className="nav-links" style={{ display: 'flex', alignItems: 'center' }}>
-        {auth?.token ? (
-          <>
-            <Link to="/practice" className={isActive('/practice')} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <LayoutDashboard size={18} /> Практика
-            </Link>
-            
-            <Link to="/companion" className={isActive('/companion')} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <AudioWaveform size={18} /> Live Тренер
-            </Link>
 
-            <Link to="/profile" className={isActive('/profile')} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <User size={18} /> Профиль
+      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+        {!isAuthPage && isLoggedIn && (
+          <div className="nav-links" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+            <Link to="/practice" className="nav-link">
+              <Mic size={18} /> <span>{t('nav.practice', 'Тренировка')}</span>
             </Link>
-            
-            <Link to="/history" className={isActive('/history')} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <HistoryIcon size={18} /> История
+            <Link to="/live" className="nav-link">
+              <Activity size={18} /> <span>{t('nav.live', 'Live')}</span>
             </Link>
-            
-            <div style={{ width: '1px', height: '24px', background: 'var(--glass-border)', margin: '0 1.5rem' }}></div>
-            
-            <button 
-              onClick={() => auth.setAuth(null)} 
-              className="btn btn-outline" 
-              style={{ border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.5rem 1rem', fontSize: '0.8rem' }}
-            >
-              <LogOut size={16} /> Выход
-            </button>
-          </>
-        ) : (
-          <Link to="/auth" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', marginLeft: '1rem' }}>
-            Войти
-          </Link>
+            <Link to="/history" className="nav-link">
+              <History size={18} /> <span>{t('nav.history', 'История')}</span>
+            </Link>
+            <Link to="/profile" className="nav-link">
+              <User size={18} /> <span>{t('nav.profile', 'Профиль')}</span>
+            </Link>
+          </div>
         )}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <LanguageSwitcher />
+
+          {!isAuthPage && isLoggedIn && (
+            <button onClick={handleLogout} className="btn-icon" title={t('auth.logout', 'Выйти')}>
+              <LogOut size={20} />
+            </button>
+          )}
+        </div>
       </div>
+
+      <style>{`
+        .nav-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          color: var(--text-muted);
+          text-decoration: none;
+          font-weight: 500;
+          transition: all 0.2s;
+        }
+        .nav-link:hover, .nav-link.active {
+          color: var(--primary);
+        }
+        .btn-icon {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--glass-border);
+          color: var(--text-muted);
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          padding: 0;
+          line-height: 1;
+        }
+        .btn-icon:hover {
+          background: rgba(244, 63, 94, 0.1);
+          color: #f43f5e;
+          border-color: rgba(244, 63, 94, 0.3);
+        }
+      `}</style>
     </nav>
   );
-};
-
-export default Navbar;
+}

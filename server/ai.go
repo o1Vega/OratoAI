@@ -28,26 +28,53 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prompt := fmt.Sprintf(`
-	Роль: Судья по ораторскому мастерству. Язык: Русский.
-	Текст выступления: "%s"
-	
-	Задача: Оцени речь и верни СТРОГИЙ JSON (без Markdown).
-	
-	Структура JSON:
-	{
-		"clarityScore": (0-100, общая оценка),
-		"metrics": {
-			"confidence": (0-100, уверенность),
-			"vocabulary": (0-100, богатство языка),
-			"structure": (0-100, логика),
-			"empathy": (0-100, эмоциональность),
-			"conciseness": (0-100, краткость)
-		},
-		"fillerWords": ["слово1", "слово2"],
-		"feedback": "Похвала (1-2 предл., русский)",
-		"tip": "Совет (1-2 предл., русский)"
-	}`, req.Transcript)
+	lang := req.Language
+	if lang == "" { lang = "ru" }
+
+	var prompt string
+	if lang == "ru" {
+		prompt = fmt.Sprintf(`
+		Роль: Судья по ораторскому мастерству. Язык: Русский.
+		Текст выступления: "%s"
+		
+		Задача: Оцени речь и верни СТРОГИЙ JSON (без Markdown).
+		
+		Структура JSON:
+		{
+			"clarityScore": (0-100, общая оценка),
+			"metrics": {
+				"confidence": (0-100, уверенность),
+				"vocabulary": (0-100, богатство языка),
+				"structure": (0-100, логика),
+				"empathy": (0-100, эмоциональность),
+				"conciseness": (0-100, краткость)
+			},
+			"fillerWords": ["слово1", "слово2"],
+			"feedback": "Похвала (1-2 предл., русский)",
+			"tip": "Совет (1-2 предл., русский)"
+		}`, req.Transcript)
+	} else {
+		prompt = fmt.Sprintf(`
+		Role: Public Speaking Coach. Language: English.
+		Speech text: "%s"
+		
+		Task: Evaluate the speech and return STRICT JSON (no Markdown).
+		
+		JSON Structure:
+		{
+			"clarityScore": (0-100, overall score),
+			"metrics": {
+				"confidence": (0-100),
+				"vocabulary": (0-100),
+				"structure": (0-100),
+				"empathy": (0-100),
+				"conciseness": (0-100)
+			},
+			"fillerWords": ["word1", "word2"],
+			"feedback": "Praise (1-2 sentences, English)",
+			"tip": "Tip (1-2 sentences, English)"
+		}`, req.Transcript)
+	}
 
 	ctx := context.Background()
 	gemini.SetTemperature(0.5)
@@ -90,7 +117,7 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 				}
 
 				go processGamification(uid, clarity, wpm) 
-
+				
 				result["pace"] = wpm
 				jsonResponse(w, result)
 				return
@@ -101,33 +128,49 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleCompanion(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Message string `json:"message"`
-		Mode    string `json:"mode"`
-	}
+	var req CompanionRequest
 	
 	if json.NewDecoder(r.Body).Decode(&req) != nil {
 		httpError(w, "Invalid JSON", 400)
 		return
 	}
 
+	lang := req.Language
+	if lang == "" { lang = "ru" }
+
 	ctx := context.Background()
 	var rolePrompt string
 	var temp float32
 
-	switch req.Mode {
-	case "interview":
-		rolePrompt = `Роль: Строгий HR-менеджер. Тон: Холодный. Задача: Проводи собеседование.`
-		temp = 0.3 
-	case "debate":
-		rolePrompt = `Роль: Оппонент в дебатах. Тон: Напористый. Задача: Спорь и опровергай.`
-		temp = 0.9
-	default: 
-		rolePrompt = `Роль: Дружелюбный наставник. Тон: Теплый. Задача: Поддерживай беседу.`
-		temp = 0.7
+	if lang == "ru" {
+		switch req.Mode {
+		case "interview":
+			rolePrompt = `Роль: Строгий HR-менеджер. Тон: Холодный. Задача: Проводи собеседование.`
+			temp = 0.3 
+		case "debate":
+			rolePrompt = `Роль: Оппонент в дебатах. Тон: Напористый. Задача: Спорь и опровергай.`
+			temp = 0.9
+		default: 
+			rolePrompt = `Роль: Дружелюбный наставник. Тон: Теплый. Задача: Поддерживай беседу.`
+			temp = 0.7
+		}
+		rolePrompt += " Язык: Русский."
+	} else {
+		switch req.Mode {
+		case "interview":
+			rolePrompt = `Role: Strict HR Manager. Tone: Cold. Task: Conduct an interview.`
+			temp = 0.3 
+		case "debate":
+			rolePrompt = `Role: Debate Opponent. Tone: Assertive. Task: Argue and refute.`
+			temp = 0.9
+		default: 
+			rolePrompt = `Role: Friendly Mentor. Tone: Warm. Task: Keep the conversation going.`
+			temp = 0.7
+		}
+		rolePrompt += " Language: English."
 	}
 
-	prompt := fmt.Sprintf(`%s Язык: Русский. Ответь кратко (1-3 предл). Пользователь: "%s"`, rolePrompt, req.Message)
+	prompt := fmt.Sprintf(`%s Reply briefly (1-3 sentences). User: "%s"`, rolePrompt, req.Message)
 
 	gemini.SetTemperature(temp)
 	resp, err := gemini.GenerateContent(ctx, genai.Text(prompt))

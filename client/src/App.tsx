@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext, ReactNode } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast'; 
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Footer from './components/Footer';
+import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Auth from './components/Auth';
 import Recorder from './components/Recorder';
@@ -18,7 +19,7 @@ interface RouteProps {
 
 const ProtectedRoute = ({ children }: RouteProps) => {
   const auth = useContext(AuthContext);
-  
+
   if (!auth?.token) {
     return <Navigate to="/auth" replace />;
   }
@@ -27,7 +28,7 @@ const ProtectedRoute = ({ children }: RouteProps) => {
 
 const GuestRoute = ({ children }: RouteProps) => {
   const auth = useContext(AuthContext);
-  
+
   if (auth?.token) {
     return <Navigate to="/practice" replace />;
   }
@@ -36,7 +37,9 @@ const GuestRoute = ({ children }: RouteProps) => {
 
 const MainLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
-  
+  const location = useLocation();
+  const isAuth = location.pathname.startsWith('/auth');
+
   useEffect(() => {
     const t = setTimeout(() => setIsLoading(false), 2200);
     return () => clearTimeout(t);
@@ -45,7 +48,7 @@ const MainLayout = () => {
   return (
     <>
       {isLoading && <IntroLoader />}
-      
+
       <Toaster
         position="top-center"
         reverseOrder={false}
@@ -75,20 +78,21 @@ const MainLayout = () => {
 
       <div className={`app-content ${isLoading ? 'hidden-content' : 'visible-content'}`}>
         <Navbar />
-        <div className="container main-container">
+        <div className="container main-container" style={{ minHeight: 'calc(100vh - 80px - 300px)' }}> {/* Adjust min-height for footer sticky */}
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/practice" element={<ProtectedRoute><Recorder /></ProtectedRoute>} />
-            
-            <Route path="/companion" element={<ProtectedRoute><LiveTrainer /></ProtectedRoute>} />
-            
+
+            <Route path="/live" element={<ProtectedRoute><LiveTrainer /></ProtectedRoute>} />
+
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            
+
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/auth" element={<GuestRoute><Auth /></GuestRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
+        {!isAuth && <Footer />}
       </div>
     </>
   );

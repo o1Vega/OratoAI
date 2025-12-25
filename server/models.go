@@ -42,9 +42,11 @@ type VerifyRequest struct {
 type AnalyzeRequest struct {
 	Transcript string  `json:"transcript"`
 	Duration   float64 `json:"durationSeconds"`
+	Language   string  `json:"language"`
 }
 
 type CompanionRequest struct {
 	Message string `json:"message"`
 	Mode    string `json:"mode"`
+	Language string `json:"language"`
 }

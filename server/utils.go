@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"net/http"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -41,11 +41,22 @@ func makeToken(id int, name string) string {
 	return s
 }
 
-func sendTg(chatID int64, code, action string) bool {
+func sendTg(chatID int64, code, actionRu string) bool {
 	if bot == nil {
 		return false
 	}
-	txt := fmt.Sprintf("🔐 <b>Orato AI</b>\n\nВаш код для %s: <code>%s</code>\n\nНикому не сообщайте его.", action, code)
+
+	var actionEn string
+	switch actionRu {
+	case "регистрации":
+		actionEn = "registration"
+	case "входа":
+		actionEn = "login"
+	default:
+		actionEn = "action"
+	}
+
+	txt := fmt.Sprintf("🔐 <b>Orato AI</b>\n\nYour code for %s: <code>%s</code>\nВаш код для %s: <code>%s</code>\n\nDo not share this / Никому не сообщайте.", actionEn, code, actionRu, code)
 	msg := tgbotapi.NewMessage(chatID, txt)
 	msg.ParseMode = "HTML"
 	_, err := bot.Send(msg)

@@ -1,0 +1,129 @@
+{
+  "nav": {
+    "home": "Home",
+    "practice": "Practice",
+    "history": "History",
+    "profile": "Profile",
+    "live": "Live"
+  },
+  "recorder": {
+    "title": "Speech Training",
+    "subtitle": "Press the button to get a random topic, or speak freely.",
+    "topicLabel": "SPEECH TOPIC",
+    "newTopic": "Different Topic",
+    "genTopic": "Generate Topic",
+    "analyzing": "Analyzing...",
+    "start": "Start Recording",
+    "stop": "Stop",
+    "placeholder": "Press record and speak...",
+    "scorePoints": "Points",
+    "skillMap": "SKILL MAP",
+    "complete": "Analysis Complete",
+    "wpm": "Words / Min",
+    "fillers": "Filler Words",
+    "cleanSpeech": "Clean speech! 🎉",
+    "good": "What's good:",
+    "tip": "Growth Area:",
+    "analyzing_error": "AI Error"
+  },
+  "live": {
+    "start": "Start",
+    "stop": "Stop",
+    "initial": "Choose a mode and press mic.",
+    "mentor": "Mentor",
+    "interview": "Interview",
+    "debate": "Debate"
+  },
+  "home": {
+    "sparkles": "New AI Mode",
+    "hero": {
+      "title1": "Speak confidently.",
+      "title2": "Conquer fear.",
+      "subtitle": "Your personal AI public speaking coach. Analyzes speech, finds filler words, and gives advice on how to sound more persuasive."
+    },
+    "buttons": {
+      "continue": "Continue training",
+      "start": "Start for free",
+      "login": "Login"
+    },
+    "features": {
+      "practice": {
+        "title": "Real Practice",
+        "desc": "Record your speech in the browser. No live audience — just you and the algorithms."
+      },
+      "analysis": {
+        "title": "Smart Analysis",
+        "desc": "Artificial intelligence evaluates the clarity, pace, and structure of your performance in seconds."
+      },
+      "detector": {
+        "title": "Filler Detector",
+        "desc": "We will find every 'um', 'uh', and 'like' to make your speech clean and professional."
+      }
+    },
+    "why": {
+      "title": "Why Orato AI?",
+      "progress": {
+        "title": "Progress Tracking",
+        "desc": "History saves all scores. Watch your skill grow every day."
+      },
+      "privacy": {
+        "title": "Privacy",
+        "desc": "Your recordings are analyzed and immediately deleted. Text is stored only with you."
+      }
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "fill_data": "Fill in the details",
+    "security_check": "Security check",
+    "no_account": "No account? ",
+    "have_account": "Already have an account? ",
+    "buttons": {
+      "login": "Login",
+      "create": "Create account",
+      "verify": "Verify code",
+      "back": "Back"
+    },
+    "placeholders": {
+      "username": "Username",
+      "telegram": "Telegram Chat ID",
+      "email": "Email address",
+      "password": "Password",
+      "code": "000000"
+    },
+    "errors": {
+      "username_cyrillic": "Username must not contain Russian letters",
+      "username_length": "Minimum 3 characters",
+      "username_format": "Only latin letters, numbers and '_'",
+      "email_format": "Invalid Email format",
+      "password_cyrillic": "Russian letters are not allowed in password",
+      "password_length": "Minimum 8 characters",
+      "password_simple": "Password is too simple",
+      "telegram_digits": "ID must consist of digits only"
+    },
+    "strength": {
+      "label": "Enter password",
+      "weak": "Weak",
+      "medium": "Medium",
+      "normal": "Normal",
+      "good": "Good",
+      "excellent": "Excellent"
+    },
+    "messages": {
+      "welcome": "Welcome back! 👋",
+      "code_sent": "Code sent to Telegram ✈️",
+      "login_success": "Login successful! 🚀",
+      "register_success": "Registration complete! Login.",
+      "error_server": "Server error",
+      "error_code": "Invalid code",
+      "bot_info": "Bot: "
+    }
+  },
+  "footer": {
+    "description": "Your personal AI public speaking coach. Develop confidence and clarity of speech with advanced technologies.",
+    "links": "Navigation",
+    "contact": "Contacts",
+    "rights": "All rights reserved."
+  }
+}
