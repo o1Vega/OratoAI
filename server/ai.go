@@ -13,10 +13,10 @@ import (
 )
 
 func handleAnalyze(w http.ResponseWriter, r *http.Request) {
-	var req AnalyzeRequest 
+	var req AnalyzeRequest
 	json.NewDecoder(r.Body).Decode(&req)
-	
-	uidVal := r.Context().Value("userID")
+
+	uidVal := r.Context().Value(userIDKey)
 	if uidVal == nil {
 		httpError(w, "Unauthorized", 401)
 		return
@@ -29,7 +29,9 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 	}
 
 	lang := req.Language
-	if lang == "" { lang = "ru" }
+	if lang == "" {
+		lang = "ru"
+	}
 
 	var prompt string
 	if lang == "ru" {
@@ -79,7 +81,7 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	gemini.SetTemperature(0.5)
 	resp, err := gemini.GenerateContent(ctx, genai.Text(prompt))
-	
+
 	if err != nil {
 		log.Println("[!] Gemini Error:", err)
 		httpError(w, "Ошибка ИИ", 500)
@@ -93,31 +95,35 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 		s, e := strings.Index(txt, "{"), strings.LastIndex(txt, "}")
 		if s != -1 && e != -1 {
 			cleanJson := txt[s : e+1]
-			
+
 			var result map[string]interface{}
 			if json.Unmarshal([]byte(cleanJson), &result) == nil {
-				
-				if req.Duration <= 0 { req.Duration = 1 }
+
+				if req.Duration <= 0 {
+					req.Duration = 1
+				}
 				wpm := int(math.Round(float64(len(strings.Fields(req.Transcript))) / req.Duration * 60))
 
 				clarity := 0
-				if v, ok := result["clarityScore"].(float64); ok { clarity = int(v) }
-				
+				if v, ok := result["clarityScore"].(float64); ok {
+					clarity = int(v)
+				}
+
 				fwBytes, _ := json.Marshal(result["fillerWords"])
-				metricsBytes, _ := json.Marshal(result["metrics"]) 
-				
+				metricsBytes, _ := json.Marshal(result["metrics"])
+
 				fb, _ := result["feedback"].(string)
 				tp, _ := result["tip"].(string)
 
 				_, err := db.Exec(`INSERT INTO speeches (user_id, transcript, clarity_score, pace_wpm, filler_words, feedback, tip, metrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 					uid, req.Transcript, clarity, wpm, string(fwBytes), fb, tp, string(metricsBytes))
-				
+
 				if err != nil {
 					log.Println("[!] DB Save Error:", err)
 				}
 
-				go processGamification(uid, clarity, wpm) 
-				
+				go processGamification(uid, clarity, wpm)
+
 				result["pace"] = wpm
 				jsonResponse(w, result)
 				return
@@ -129,14 +135,16 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 
 func handleCompanion(w http.ResponseWriter, r *http.Request) {
 	var req CompanionRequest
-	
+
 	if json.NewDecoder(r.Body).Decode(&req) != nil {
 		httpError(w, "Invalid JSON", 400)
 		return
 	}
 
 	lang := req.Language
-	if lang == "" { lang = "ru" }
+	if lang == "" {
+		lang = "ru"
+	}
 
 	ctx := context.Background()
 	var rolePrompt string
@@ -146,11 +154,11 @@ func handleCompanion(w http.ResponseWriter, r *http.Request) {
 		switch req.Mode {
 		case "interview":
 			rolePrompt = `Роль: Строгий HR-менеджер. Тон: Холодный. Задача: Проводи собеседование.`
-			temp = 0.3 
+			temp = 0.3
 		case "debate":
 			rolePrompt = `Роль: Оппонент в дебатах. Тон: Напористый. Задача: Спорь и опровергай.`
 			temp = 0.9
-		default: 
+		default:
 			rolePrompt = `Роль: Дружелюбный наставник. Тон: Теплый. Задача: Поддерживай беседу.`
 			temp = 0.7
 		}
@@ -159,11 +167,11 @@ func handleCompanion(w http.ResponseWriter, r *http.Request) {
 		switch req.Mode {
 		case "interview":
 			rolePrompt = `Role: Strict HR Manager. Tone: Cold. Task: Conduct an interview.`
-			temp = 0.3 
+			temp = 0.3
 		case "debate":
 			rolePrompt = `Role: Debate Opponent. Tone: Assertive. Task: Argue and refute.`
 			temp = 0.9
-		default: 
+		default:
 			rolePrompt = `Role: Friendly Mentor. Tone: Warm. Task: Keep the conversation going.`
 			temp = 0.7
 		}
@@ -174,7 +182,7 @@ func handleCompanion(w http.ResponseWriter, r *http.Request) {
 
 	gemini.SetTemperature(temp)
 	resp, err := gemini.GenerateContent(ctx, genai.Text(prompt))
-	
+
 	if err == nil && len(resp.Candidates) > 0 {
 		if part, ok := resp.Candidates[0].Content.Parts[0].(genai.Text); ok {
 			txt := string(part)

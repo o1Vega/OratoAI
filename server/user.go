@@ -7,7 +7,7 @@ import (
 )
 
 func handleHistory(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("userID").(int)
+	userID := r.Context().Value(userIDKey).(int)
 
 	if r.Method == "DELETE" {
 		_, err := db.Exec("DELETE FROM speeches WHERE user_id = ?", userID)
@@ -24,7 +24,7 @@ func handleHistory(w http.ResponseWriter, r *http.Request) {
 		FROM speeches 
 		WHERE user_id = ? 
 		ORDER BY created_at DESC`, userID)
-	
+
 	if err != nil {
 		httpError(w, "DB Query Error", 500)
 		return
@@ -43,11 +43,15 @@ func handleHistory(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var fwArr []string
-		if fw == "" { fw = "[]" }
+		if fw == "" {
+			fw = "[]"
+		}
 		_ = json.Unmarshal([]byte(fw), &fwArr)
 
 		var metricsObj map[string]interface{}
-		if metStr == "" { metStr = "{}" } 
+		if metStr == "" {
+			metStr = "{}"
+		}
 		_ = json.Unmarshal([]byte(metStr), &metricsObj)
 
 		res = append(res, map[string]interface{}{
@@ -71,7 +75,7 @@ func handleHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetProfile(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("userID").(int)
+	userID := r.Context().Value(userIDKey).(int)
 
 	var u UserProfile
 	var badgesStr string
@@ -84,7 +88,9 @@ func handleGetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if badgesStr == "" { badgesStr = "[]" }
+	if badgesStr == "" {
+		badgesStr = "[]"
+	}
 	json.Unmarshal([]byte(badgesStr), &u.Badges)
 
 	u.NextLvlXP = u.Level * 1000

@@ -19,30 +19,40 @@
 1.  **Мгновенная запись:** Вы говорите — система слушает и переводит голос в текст.
 2.  **ИИ-Анализ:** Google Gemini оценивает структуру, чистоту и смысл речи.
 3.  **Метрики:** Сервер на Go мгновенно считает темп речи (WPM) и слова-паразиты.
-4.  **Безопасность:** Вход защищен через Telegram, что исключает фейковые регистрации.
+4.  **Безопасность:** Вход через Google, GitHub или Telegram 2FA.
 
 ---
 
 ## 🛠️ Технологический стек
 
 *   **Frontend:** TypeScript, React 19, Vite, CSS Modules (Deep Glass UI).
-*   **Backend:** Go (Golang), Gin/Fiber (или net/http), SQLite.
-*   **AI:** Google Generative AI SDK.
-*   **Security:** Telegram 2FA, JWT.
+*   **Backend:** Go (Golang), net/http, SQLite.
+*   **AI:** Google Generative AI SDK (Gemini 2.0).
+*   **Auth:** OAuth 2.0 (Google, GitHub), Telegram 2FA, JWT.
+*   **Security:** CORS whitelist, JWT algorithm validation, bcrypt passwords.
 
 ---
 
 ## 🔑 Получение ключей (Важно!)
 
-Перед запуском Вам нужно получить два ключа. Это бесплатно и займет 2 минуты.
+### 1. Google OAuth (рекомендуется для входа)
+1. Перейдите в [Google Cloud Console](https://console.cloud.google.com/)
+2. APIs & Services → Credentials → Create OAuth Client ID
+3. Redirect URI: `http://localhost:5000/api/auth/google/callback`
+4. Скопируйте Client ID и Client Secret
 
-### 1. Настройка Telegram Бота (для входа на сайт)
+### 2. GitHub OAuth (опционально)
+1. Перейдите в [GitHub Developer Settings](https://github.com/settings/developers)
+2. OAuth Apps → New OAuth App
+3. Callback URL: `http://localhost:5000/api/auth/github/callback`
+4. Скопируйте Client ID и Client Secret
+
+### 3. Telegram Бот (для 2FA)
 1.  Откройте Telegram и найдите бота **@BotFather**.
 2.  Напишите ему команду `/newbot`.
-3.  Придумайте имя боту (например, `OratoAuth`) и юзернейм (обязательно должен заканчиваться на `bot`, например `Orato_Test_Bot`).
-4.  BotFather пришлет Вам **HTTP API Token**. Скопируйте его.
+3.  BotFather пришлет Вам **HTTP API Token**. Скопируйте его.
 
-### 2. Настройка Google Gemini (для анализа речи)
+### 4. Google Gemini (для анализа речи)
 1.  Перейдите на сайт [Google AI Studio](https://aistudio.google.com/).
 2.  Нажмите **"Get API Key"** -> **"Create API key"**.
 3.  Скопируйте полученный ключ (начинается на `AIza...`).
@@ -58,18 +68,25 @@
     cd server
     ```
 
-2.  Создайте файл `.env` (без названия, просто `.env`) и вставьте туда Ваши данные:
+2.  Создайте файл `.env` и вставьте туда Ваши данные:
     ```env
     PORT=5000
-    JWT_SECRET=придумайте_любой_сложный_пароль
-    GEMINI_API_KEY=ВСТАВЬТЕ_СЮДА_КЛЮЧ_GOOGLE
-    TELEGRAM_BOT_TOKEN=ВСТАВЬТЕ_СЮДА_ТОКЕН_ТЕЛЕГРАМА
+    JWT_SECRET=your-secure-random-string-at-least-32-characters
+    GEMINI_API_KEY=AIza...
+    TELEGRAM_BOT_TOKEN=123456:ABC...
+    
+    # OAuth (опционально, для входа через соцсети)
+    GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
+    GOOGLE_CLIENT_SECRET=GOCSPX-xxx
+    GITHUB_CLIENT_ID=Ov23li...
+    GITHUB_CLIENT_SECRET=xxx
+    OAUTH_REDIRECT_BASE=http://localhost:5173
     ```
 
 3.  Установите зависимости и запустите сервер:
     ```bash
     go mod tidy
-    go run main.go
+    go run .
     ```
     *(Сервер запустится на порту **5000** и создаст базу данных).*
 
@@ -90,14 +107,18 @@
     npm run dev
     ```
 
-4.  Откройте ссылку в браузере (обычно `http://localhost:5173`).
+4.  Откройте ссылку в браузере: `http://localhost:5173`
 
 ---
 
-## 🤖 Как войти в систему (Telegram 2FA)
+## 🔐 Способы входа в систему
 
-Система использует защиту от ботов.
+### Вариант 1: Google / GitHub OAuth (быстрый)
+1. На странице `/auth` нажмите "Войти через Google" или "Войти через GitHub"
+2. Авторизуйтесь в своем аккаунте
+3. Готово! Вы в системе
 
+### Вариант 2: Telegram 2FA (классический)
 1.  Найдите Вашего созданного бота в Telegram.
 2.  Нажмите кнопку **START** (`/start`).
 3.  Бот пришлет Ваш **Chat ID** (цифры).
@@ -106,4 +127,14 @@
 
 ---
 
+## 🛡️ Безопасность
+
+- **CORS:** Ограничен whitelist доменов (localhost:5173, 3000)
+- **JWT:** Валидация алгоритма HMAC, защита от algorithm confusion
+- **OAuth:** CSRF-защита через state-токены (crypto/rand)
+- **Пароли:** bcrypt хеширование
+
+---
+
 **Разработано на Go + TypeScript для максимальной скорости и надежности.**
+

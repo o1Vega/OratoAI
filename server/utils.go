@@ -12,6 +12,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// Type-safe context key
+type contextKey string
+
+const userIDKey contextKey = "userID"
+
 func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		h := r.Header.Get("Authorization")
@@ -19,11 +24,23 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+
+		// Parse with algorithm validation to prevent algorithm confusion attacks
 		token, err := jwt.Parse(strings.TrimPrefix(h, "Bearer "), func(t *jwt.Token) (interface{}, error) {
+			// Validate the signing method
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			}
 			return jwtSecret, nil
 		})
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid && err == nil {
-			ctx := context.WithValue(r.Context(), "userID", int(claims["id"].(float64)))
+
+		if err != nil || !token.Valid {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			ctx := context.WithValue(r.Context(), userIDKey, int(claims["id"].(float64)))
 			next(w, r.WithContext(ctx))
 		} else {
 			w.WriteHeader(http.StatusForbidden)

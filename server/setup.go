@@ -37,6 +37,8 @@ func initDB() {
 		email TEXT UNIQUE,
 		password TEXT,
 		telegram_chat_id TEXT,
+		oauth_provider TEXT,
+		oauth_id TEXT,
 		-- Геймификация --
 		xp INTEGER DEFAULT 0,
 		level INTEGER DEFAULT 1,

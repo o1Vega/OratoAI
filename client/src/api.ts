@@ -109,3 +109,12 @@ export const getProfile = async () => {
 export const getRandomTopic = async (language: string) => {
   return api.get<{ id: number; text: string }>(`/topics/random?lang=${language}`);
 };
+
+// OAuth
+export const getGoogleAuthUrl = async () => {
+  return api.get<{ url: string }>('/auth/google');
+};
+
+export const getGitHubAuthUrl = async () => {
+  return api.get<{ url: string }>('/auth/github');
+};

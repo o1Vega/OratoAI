@@ -4,6 +4,7 @@ import Footer from './components/Footer';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Auth from './components/Auth';
+import OAuthCallback from './components/OAuthCallback';
 import Recorder from './components/Recorder';
 import History from './components/History';
 import Home from './components/Home';
@@ -89,6 +90,7 @@ const MainLayout = () => {
 
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/auth" element={<GuestRoute><Auth /></GuestRoute>} />
+            <Route path="/auth/callback" element={<OAuthCallback />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
