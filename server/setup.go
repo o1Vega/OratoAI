@@ -150,7 +150,7 @@ func initGemini() {
 		log.Fatal("[!] Gemini Client Error:", err)
 	}
 
-	modelName := "gemini-2.0-flash"
+	modelName := "gemini-2.5-flash"
 	fmt.Printf("[+] Connected to model: %s\n", modelName)
 	gemini = client.GenerativeModel(modelName)
 
