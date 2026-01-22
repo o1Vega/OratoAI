@@ -1,4 +1,4 @@
-# 🎙️ Orato AI (demo: https://youtu.be/vkTHBMEFTvY?si=1z_CWnftEoEpQ5NG)
+# 🎙️ Orato AI (demo: https://youtu.be/j8NzcPdzmSU?si=DIgWRdkQTqE6Kjek)
 
 ![Go](https://img.shields.io/badge/Backend-Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/Frontend-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
